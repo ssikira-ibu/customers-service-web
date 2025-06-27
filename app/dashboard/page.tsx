@@ -13,13 +13,17 @@ import {
   SidebarProvider,
 } from "@/components/ui/sidebar"
 import { healthAPI } from "@/lib/api"
+import { useAuth } from "@/components/auth-provider"
 
 export default function DashboardPage() {
-  const { customers, isLoading, error, refreshCustomers } = useCustomers()
+  const { user, loading: authLoading } = useAuth()
+  const { customers, isLoading: customersLoading, error, refreshCustomers } = useCustomers()
   const [healthStatus, setHealthStatus] = useState<string>("Checking...")
 
-  // Test API connection
+  // Test API connection only when authenticated
   useEffect(() => {
+    if (!user) return
+    
     const testConnection = async () => {
       try {
         const health = await healthAPI.check()
@@ -32,7 +36,7 @@ export default function DashboardPage() {
     }
     
     testConnection()
-  }, [])
+  }, [user])
 
   // Handle errors
   useEffect(() => {
@@ -52,12 +56,55 @@ export default function DashboardPage() {
     reviewer: customer.notes?.[0]?.note || "No notes",
   }))
 
-  if (isLoading) {
+  // Show loading while authentication is in progress
+  if (authLoading) {
     return (
       <ProtectedLayout>
         <div className="flex items-center justify-center min-h-screen">
-          <Loading />
+          <div className="text-center">
+            <Loading />
+            <p className="mt-4 text-muted-foreground">Authenticating...</p>
+          </div>
         </div>
+      </ProtectedLayout>
+    )
+  }
+
+  // Show loading while customers are being fetched
+  if (customersLoading) {
+    return (
+      <ProtectedLayout>
+        <SidebarProvider
+          style={
+            {
+              "--sidebar-width": "calc(var(--spacing) * 72)",
+              "--header-height": "calc(var(--spacing) * 12)",
+            } as React.CSSProperties
+          }
+        >
+          <AppSidebar variant="inset" />
+          <SidebarInset>
+            <SiteHeader />
+            <div className="flex flex-1 flex-col">
+              <div className="@container/main flex flex-1 flex-col gap-2">
+                <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+                  {/* API Status Debug */}
+                  <div className="px-4 lg:px-6">
+                    <div className="text-sm text-muted-foreground">
+                      API Status: {healthStatus}
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-center py-12">
+                    <div className="text-center">
+                      <Loading />
+                      <p className="mt-4 text-muted-foreground">Loading customers...</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </SidebarInset>
+        </SidebarProvider>
       </ProtectedLayout>
     )
   }
