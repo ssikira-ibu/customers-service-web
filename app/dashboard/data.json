@@ -1,0 +1,227 @@
+[
+  {
+    "id": 1,
+    "header": "John Smith",
+    "type": "Customer",
+    "status": "Active",
+    "target": "john.smith@email.com",
+    "limit": "555-0123",
+    "reviewer": "Follow up call needed"
+  },
+  {
+    "id": 2,
+    "header": "Sarah Johnson",
+    "type": "Customer",
+    "status": "Active",
+    "target": "sarah.j@email.com",
+    "limit": "555-0124",
+    "reviewer": "Appointment scheduled"
+  },
+  {
+    "id": 3,
+    "header": "Michael Brown",
+    "type": "Customer",
+    "status": "Inactive",
+    "target": "mike.brown@email.com",
+    "limit": "555-0125",
+    "reviewer": "Last contact 3 months ago"
+  },
+  {
+    "id": 4,
+    "header": "Emily Davis",
+    "type": "Customer",
+    "status": "Active",
+    "target": "emily.davis@email.com",
+    "limit": "555-0126",
+    "reviewer": "Service reminder due"
+  },
+  {
+    "id": 5,
+    "header": "David Wilson",
+    "type": "Customer",
+    "status": "Active",
+    "target": "david.w@email.com",
+    "limit": "555-0127",
+    "reviewer": "Payment received"
+  },
+  {
+    "id": 6,
+    "header": "Lisa Anderson",
+    "type": "Customer",
+    "status": "Active",
+    "target": "lisa.anderson@email.com",
+    "limit": "555-0128",
+    "reviewer": "New customer onboarding"
+  },
+  {
+    "id": 7,
+    "header": "Robert Taylor",
+    "type": "Customer",
+    "status": "Inactive",
+    "target": "rob.taylor@email.com",
+    "limit": "555-0129",
+    "reviewer": "Follow up email sent"
+  },
+  {
+    "id": 8,
+    "header": "Jennifer Martinez",
+    "type": "Customer",
+    "status": "Active",
+    "target": "jen.martinez@email.com",
+    "limit": "555-0130",
+    "reviewer": "Appointment confirmed"
+  },
+  {
+    "id": 9,
+    "header": "Christopher Garcia",
+    "type": "Customer",
+    "status": "Active",
+    "target": "chris.garcia@email.com",
+    "limit": "555-0131",
+    "reviewer": "Service completed"
+  },
+  {
+    "id": 10,
+    "header": "Amanda Rodriguez",
+    "type": "Customer",
+    "status": "Active",
+    "target": "amanda.r@email.com",
+    "limit": "555-0132",
+    "reviewer": "Feedback requested"
+  },
+  {
+    "id": 11,
+    "header": "James Lopez",
+    "type": "Customer",
+    "status": "Inactive",
+    "target": "james.lopez@email.com",
+    "limit": "555-0133",
+    "reviewer": "Account review needed"
+  },
+  {
+    "id": 12,
+    "header": "Michelle White",
+    "type": "Customer",
+    "status": "Active",
+    "target": "michelle.white@email.com",
+    "limit": "555-0134",
+    "reviewer": "Upcoming appointment"
+  },
+  {
+    "id": 13,
+    "header": "Daniel Lee",
+    "type": "Customer",
+    "status": "Active",
+    "target": "daniel.lee@email.com",
+    "limit": "555-0135",
+    "reviewer": "Service reminder sent"
+  },
+  {
+    "id": 14,
+    "header": "Jessica Hall",
+    "type": "Customer",
+    "status": "Active",
+    "target": "jessica.hall@email.com",
+    "limit": "555-0136",
+    "reviewer": "Payment processing"
+  },
+  {
+    "id": 15,
+    "header": "Matthew Allen",
+    "type": "Customer",
+    "status": "Inactive",
+    "target": "matt.allen@email.com",
+    "limit": "555-0137",
+    "reviewer": "Reactivation campaign"
+  },
+  {
+    "id": 16,
+    "header": "Nicole Young",
+    "type": "Customer",
+    "status": "Active",
+    "target": "nicole.young@email.com",
+    "limit": "555-0138",
+    "reviewer": "New service inquiry"
+  },
+  {
+    "id": 17,
+    "header": "Andrew King",
+    "type": "Customer",
+    "status": "Active",
+    "target": "andrew.king@email.com",
+    "limit": "555-0139",
+    "reviewer": "Appointment rescheduled"
+  },
+  {
+    "id": 18,
+    "header": "Stephanie Wright",
+    "type": "Customer",
+    "status": "Active",
+    "target": "stephanie.w@email.com",
+    "limit": "555-0140",
+    "reviewer": "Service completed"
+  },
+  {
+    "id": 19,
+    "header": "Kevin Scott",
+    "type": "Customer",
+    "status": "Active",
+    "target": "kevin.scott@email.com",
+    "limit": "555-0141",
+    "reviewer": "Follow up call scheduled"
+  },
+  {
+    "id": 20,
+    "header": "Rachel Green",
+    "type": "Customer",
+    "status": "Inactive",
+    "target": "rachel.green@email.com",
+    "limit": "555-0142",
+    "reviewer": "Account suspended"
+  },
+  {
+    "id": 21,
+    "header": "Thomas Baker",
+    "type": "Customer",
+    "status": "Active",
+    "target": "thomas.baker@email.com",
+    "limit": "555-0143",
+    "reviewer": "New customer welcome"
+  },
+  {
+    "id": 22,
+    "header": "Laura Adams",
+    "type": "Customer",
+    "status": "Active",
+    "target": "laura.adams@email.com",
+    "limit": "555-0144",
+    "reviewer": "Service reminder due"
+  },
+  {
+    "id": 23,
+    "header": "Ryan Nelson",
+    "type": "Customer",
+    "status": "Active",
+    "target": "ryan.nelson@email.com",
+    "limit": "555-0145",
+    "reviewer": "Payment received"
+  },
+  {
+    "id": 24,
+    "header": "Heather Carter",
+    "type": "Customer",
+    "status": "Inactive",
+    "target": "heather.carter@email.com",
+    "limit": "555-0146",
+    "reviewer": "Last contact 6 months ago"
+  },
+  {
+    "id": 25,
+    "header": "Brandon Mitchell",
+    "type": "Customer",
+    "status": "Active",
+    "target": "brandon.mitchell@email.com",
+    "limit": "555-0147",
+    "reviewer": "Appointment confirmed"
+  }
+]
