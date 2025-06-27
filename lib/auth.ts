@@ -50,6 +50,7 @@ export async function signUp(data: SignUpData): Promise<AuthResponse> {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
       },
       body: JSON.stringify(data),
     });
@@ -110,6 +111,7 @@ export async function authenticatedFetch(
 
   const headers = {
     'Content-Type': 'application/json',
+    'Accept': 'application/json',
     'Authorization': `Bearer ${token}`,
     ...options.headers,
   };

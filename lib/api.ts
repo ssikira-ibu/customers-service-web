@@ -1,7 +1,7 @@
 import { authenticatedFetch } from './auth';
 
 // API Base URL
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3031';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 // Types for API requests and responses
 export interface Customer {

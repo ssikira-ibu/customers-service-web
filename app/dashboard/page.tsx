@@ -5,16 +5,34 @@ import { DataTable } from "@/components/data-table"
 import { ProtectedLayout } from "@/components/layout/protected-layout"
 import { Loading } from "@/components/ui/loading"
 import { handleAPIError } from "@/lib/utils/api-utils"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
 import {
   SidebarInset,
   SidebarProvider,
 } from "@/components/ui/sidebar"
+import { healthAPI } from "@/lib/api"
 
 export default function DashboardPage() {
   const { customers, isLoading, error, refreshCustomers } = useCustomers()
+  const [healthStatus, setHealthStatus] = useState<string>("Checking...")
+
+  // Test API connection
+  useEffect(() => {
+    const testConnection = async () => {
+      try {
+        const health = await healthAPI.check()
+        setHealthStatus(`API Connected: ${health.status}`)
+        console.log("API Health Check:", health)
+      } catch (error) {
+        setHealthStatus(`API Error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+        console.error("API Health Check Failed:", error)
+      }
+    }
+    
+    testConnection()
+  }, [])
 
   // Handle errors
   useEffect(() => {
@@ -60,6 +78,12 @@ export default function DashboardPage() {
           <div className="flex flex-1 flex-col">
             <div className="@container/main flex flex-1 flex-col gap-2">
               <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+                {/* API Status Debug */}
+                <div className="px-4 lg:px-6">
+                  <div className="text-sm text-muted-foreground">
+                    API Status: {healthStatus}
+                  </div>
+                </div>
                 <DataTable data={transformedData} />
               </div>
             </div>
