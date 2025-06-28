@@ -247,14 +247,14 @@ export default function RemindersPage() {
                 {/* Filters and Search */}
                 <div className="px-4 lg:px-6">
                   <div className="flex flex-col gap-3">
-                    {/* Search Bar */}
-                    <div className="relative max-w-sm">
-                      <IconSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    {/* Prominent Search Bar */}
+                    <div className="relative">
+                      <IconSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
-                        placeholder="Search reminders or customers..."
+                        placeholder="Search reminders by description or customer name..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-9 h-9"
+                        className="pl-11 h-11 text-base border-2 focus:border-primary/50"
                       />
                     </div>
                     
