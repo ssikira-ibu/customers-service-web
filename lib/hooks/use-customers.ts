@@ -205,7 +205,6 @@ export function useCustomerReminders(customerId: string) {
   );
 
   const addReminder = async (data: {
-    title: string;
     description: string;
     dueDate: string;
     priority?: 'low' | 'medium' | 'high';

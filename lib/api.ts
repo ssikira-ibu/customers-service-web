@@ -14,7 +14,7 @@ export interface Customer {
   phones: Phone[];
   addresses: Address[];
   notes: Note[];
-  reminders: Reminder[];
+  reminders?: Reminder[];
 }
 
 export interface Phone {
@@ -46,13 +46,18 @@ export interface Note {
 
 export interface Reminder {
   id: string;
-  title: string;
   description: string;
   dueDate: string;
   priority: 'low' | 'medium' | 'high';
-  completed: boolean;
+  dateCompleted: string | null;
   createdAt: string;
   updatedAt: string;
+  customer?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
 }
 
 export interface CreateCustomerRequest {
@@ -92,7 +97,6 @@ export interface CreateNoteRequest {
 }
 
 export interface CreateReminderRequest {
-  title: string;
   description: string;
   dueDate: string;
   priority?: 'low' | 'medium' | 'high';
@@ -108,6 +112,16 @@ export interface User {
   lastSignInTime: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface ReminderAnalytics {
+  counts: {
+    total: number;
+    active: number;
+    overdue: number;
+    completed: number;
+  };
+  completionRate: number;
 }
 
 // API Error class
@@ -340,9 +354,12 @@ export const customerAPI = {
 
   async completeReminder(customerId: string, reminderId: string): Promise<Reminder> {
     const response = await authenticatedFetch(
-      `${API_BASE_URL}/customers/${customerId}/reminders/${reminderId}/complete`,
+      `${API_BASE_URL}/customers/${customerId}/reminders/${reminderId}`,
       {
-        method: 'PUT',
+        method: 'PATCH',
+        body: JSON.stringify({
+          dateCompleted: new Date().toISOString()
+        }),
       }
     );
     return handleResponse<Reminder>(response);
@@ -350,9 +367,12 @@ export const customerAPI = {
 
   async reopenReminder(customerId: string, reminderId: string): Promise<Reminder> {
     const response = await authenticatedFetch(
-      `${API_BASE_URL}/customers/${customerId}/reminders/${reminderId}/reopen`,
+      `${API_BASE_URL}/customers/${customerId}/reminders/${reminderId}`,
       {
-        method: 'PUT',
+        method: 'PATCH',
+        body: JSON.stringify({
+          dateCompleted: null
+        }),
       }
     );
     return handleResponse<Reminder>(response);
@@ -383,5 +403,49 @@ export const healthAPI = {
   async check(): Promise<{ status: string; timestamp: string }> {
     const response = await fetch(`${API_BASE_URL}/health`);
     return handleResponse<{ status: string; timestamp: string }>(response);
+  },
+};
+
+// Global Reminder API functions
+export const reminderAPI = {
+  // Get global analytics for all reminders
+  async getAnalytics(): Promise<ReminderAnalytics> {
+    const response = await authenticatedFetch(`${API_BASE_URL}/reminders/analytics`);
+    return handleResponse<ReminderAnalytics>(response);
+  },
+
+  // Get global list of reminders with filtering
+  async getAll(params?: {
+    status?: 'active' | 'overdue' | 'completed' | 'all';
+    include?: 'customer';
+  }): Promise<Reminder[]> {
+    const searchParams = new URLSearchParams();
+    if (params?.status && params.status !== 'all') {
+      searchParams.append('status', params.status);
+    }
+    if (params?.include) {
+      searchParams.append('include', params.include);
+    }
+    
+    const url = `${API_BASE_URL}/reminders${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+    const response = await authenticatedFetch(url);
+    return handleResponse<Reminder[]>(response);
+  },
+
+  // Update reminder (partial update)
+  async updateReminder(customerId: string, reminderId: string, data: Partial<{
+    description: string;
+    dueDate: string;
+    priority: 'low' | 'medium' | 'high';
+    dateCompleted: string | null;
+  }>): Promise<Reminder> {
+    const response = await authenticatedFetch(
+      `${API_BASE_URL}/customers/${customerId}/reminders/${reminderId}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }
+    );
+    return handleResponse<Reminder>(response);
   },
 }; 
