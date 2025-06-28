@@ -87,25 +87,43 @@ export function ReminderCard({
       />
 
       <div className="flex items-start gap-3">
-        {/* Status icon */}
+        {/* Todo-style checkbox */}
         <div className="flex-shrink-0 mt-0.5">
-          {reminder.completed ? (
-            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/20">
-              <IconCircleCheck className="h-3 w-3 text-green-600 dark:text-green-400" />
-            </div>
-          ) : isOverdue ? (
-            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">
-              <IconAlertTriangle className="h-3 w-3 text-red-600 dark:text-red-400" />
-            </div>
-          ) : isDueToday ? (
-            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/20">
-              <IconClock className="h-3 w-3 text-orange-600 dark:text-orange-400" />
-            </div>
-          ) : (
-            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-muted">
-              <IconClock className="h-3 w-3 text-muted-foreground" />
-            </div>
-          )}
+          <button
+            onClick={() =>
+              reminder.completed
+                ? onReopen(reminder.customerId, reminder.id)
+                : onComplete(reminder.customerId, reminder.id)
+            }
+            disabled={loadingActions.has(
+              `${reminder.customerId}-${reminder.id}-${
+                reminder.completed ? "reopen" : "complete"
+              }`
+            )}
+            className={`group/checkbox relative flex h-5 w-5 items-center justify-center rounded-md border-2 transition-all hover:scale-105 ${
+              reminder.completed
+                ? "bg-green-500 border-green-500 text-white hover:bg-green-600 hover:border-green-600"
+                : isOverdue
+                ? "border-red-300 hover:border-red-400 hover:bg-red-50 dark:hover:bg-red-950/20"
+                : isDueToday
+                ? "border-orange-300 hover:border-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/20"
+                : "border-muted-foreground/30 hover:border-muted-foreground/50 hover:bg-muted/50"
+            } disabled:opacity-50 disabled:hover:scale-100`}
+          >
+            {loadingActions.has(
+              `${reminder.customerId}-${reminder.id}-${
+                reminder.completed ? "reopen" : "complete"
+              }`
+            ) ? (
+              <div className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+            ) : reminder.completed ? (
+              <IconCheck className="h-3 w-3" />
+            ) : (
+              <div className="opacity-0 group-hover/checkbox:opacity-100 transition-opacity">
+                <IconCheck className="h-3 w-3" />
+              </div>
+            )}
+          </button>
         </div>
 
         {/* Main content */}
@@ -193,43 +211,6 @@ export function ReminderCard({
 
             {/* Actions */}
             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              {!reminder.completed ? (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => onComplete(reminder.customerId, reminder.id)}
-                  disabled={loadingActions.has(
-                    `${reminder.customerId}-${reminder.id}-complete`
-                  )}
-                  className="h-7 w-7 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-950 disabled:opacity-50"
-                >
-                  {loadingActions.has(
-                    `${reminder.customerId}-${reminder.id}-complete`
-                  ) ? (
-                    <div className="h-3 w-3 animate-spin rounded-full border-2 border-green-600 border-t-transparent" />
-                  ) : (
-                    <IconCheck className="h-3 w-3" />
-                  )}
-                </Button>
-              ) : (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => onReopen(reminder.customerId, reminder.id)}
-                  disabled={loadingActions.has(
-                    `${reminder.customerId}-${reminder.id}-reopen`
-                  )}
-                  className="h-7 w-7 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950 disabled:opacity-50"
-                >
-                  {loadingActions.has(
-                    `${reminder.customerId}-${reminder.id}-reopen`
-                  ) ? (
-                    <div className="h-3 w-3 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
-                  ) : (
-                    <IconRotate className="h-3 w-3" />
-                  )}
-                </Button>
-              )}
               <Button
                 size="sm"
                 variant="ghost"
