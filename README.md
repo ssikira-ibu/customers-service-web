@@ -1,22 +1,61 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Customer Service Web
+
+A modern customer management system built with Next.js, TypeScript, and Firebase.
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+ 
+- npm or yarn
+- Firebase project
+
+### Environment Setup
+
+1. **Copy the environment template:**
+   ```bash
+   cp .env.local.example .env.local
+   ```
+
+2. **Configure Firebase:**
+   - Go to your [Firebase Console](https://console.firebase.google.com/)
+   - Select your project
+   - Go to Project Settings > General
+   - Scroll down to "Your apps" section
+   - Copy the Firebase config values to your `.env.local` file
+
+3. **Required Environment Variables:**
+   ```env
+   NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key_here
+   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project_id.firebaseapp.com
+   NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project_id.appspot.com
+   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+   NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+   NEXT_PUBLIC_API_URL=http://localhost:8080
+   ```
+
+### Installation
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to view the application.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Security Notes
+
+- **Never commit `.env.local`** - It contains sensitive Firebase credentials
+- **Use environment variables** - All Firebase config is loaded from environment variables
+- **Revoke exposed keys** - If you accidentally commit credentials, immediately revoke them in Firebase Console
+
+## Features
+
+- Customer management
+- Reminder system
+- Firebase authentication
+- Modern UI with shadcn/ui components
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
