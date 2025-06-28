@@ -2,7 +2,7 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyA0IQs4S8AUcWRF640H93nD1n5nCbhq6Vk",
+    apiKey: "REDACTED",
     authDomain: "ibu-customer-management.firebaseapp.com",
     projectId: "ibu-customer-management",
     storageBucket: "ibu-customer-management.firebasestorage.app",
