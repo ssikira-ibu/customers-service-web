@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { useAuth } from "@/components/auth-provider"
+import { Search } from "@/components/search";
 import { signOut } from "@/lib/auth"
 import { useRouter } from "next/navigation"
-import { IconLogout, IconPlus, IconSearch, IconUser } from "@tabler/icons-react"
+import { IconLogout, IconPlus, IconUser } from "@tabler/icons-react";
 
 export function SiteHeader() {
   const { user } = useAuth();
@@ -26,13 +27,12 @@ export function SiteHeader() {
       <div className="flex w-full items-center gap-2 px-4 lg:px-6">
         <SidebarTrigger className="-ml-1 h-8 w-8" />
         <Separator orientation="vertical" className="h-4" />
-        <h1 className="text-sm font-medium text-foreground">Customer Management</h1>
+        <h1 className="text-sm font-medium text-foreground">
+          Customer Management
+        </h1>
         <div className="flex-1" />
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="sm" className="h-8 px-2 text-xs">
-            <IconSearch className="h-3.5 w-3.5 mr-1.5" />
-            Search
-          </Button>
+          <Search />
           <Button variant="ghost" size="sm" className="h-8 px-2 text-xs">
             <IconPlus className="h-3.5 w-3.5 mr-1.5" />
             Add
@@ -45,12 +45,12 @@ export function SiteHeader() {
               <IconUser className="h-2.5 w-2.5" />
             </div>
             <span className="hidden sm:inline">
-              {user?.displayName || user?.email?.split('@')[0]}
+              {user?.displayName || user?.email?.split("@")[0]}
             </span>
           </div>
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={handleSignOut}
             className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
           >
@@ -59,5 +59,5 @@ export function SiteHeader() {
         </div>
       </div>
     </header>
-  )
+  );
 }

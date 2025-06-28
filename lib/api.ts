@@ -145,7 +145,10 @@ async function handleResponse<T>(response: Response): Promise<T> {
     try {
       const errorData = await response.json();
       if (errorData.error) {
-        errorMessage = errorData.error;
+        errorMessage =
+          typeof errorData.error === "string"
+            ? errorData.error
+            : JSON.stringify(errorData.error);
       }
       if (errorData.errors) {
         errors = errorData.errors;

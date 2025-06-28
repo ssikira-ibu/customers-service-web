@@ -39,11 +39,32 @@ export function useCustomers() {
 // Hook for searching customers
 export function useCustomerSearch(query: string) {
   const { user, loading: authLoading } = useAuth();
-  
+  const { customers } = useCustomers(); // Get all customers for fallback search
+
   const { data, error, isLoading } = useSWR<Customer[]>(
     // Only search when user is authenticated and query is provided
-    user && query ? `customers/search/${query}` : null,
-    () => customerAPI.search(query),
+    user && query ? `customers-search-${query}` : null,
+    async () => {
+      try {
+        return await customerAPI.search(query);
+      } catch (apiError) {
+        console.error(
+          "API search failed, falling back to client-side search:",
+          apiError
+        );
+        // Fallback to client-side search
+        const searchTerm = query.toLowerCase();
+        return customers.filter(
+          (customer) =>
+            customer.firstName.toLowerCase().includes(searchTerm) ||
+            customer.lastName.toLowerCase().includes(searchTerm) ||
+            customer.email.toLowerCase().includes(searchTerm) ||
+            customer.phones?.some((phone) =>
+              phone.phoneNumber.toLowerCase().includes(searchTerm)
+            )
+        );
+      }
+    },
     {
       revalidateOnFocus: false,
       dedupingInterval: 5000, // Dedupe requests within 5 seconds
