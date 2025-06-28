@@ -1,4 +1,4 @@
-import useSWR from 'swr';
+import useSWR, { mutate as globalMutate } from 'swr';
 import { useAuth } from '@/components/auth-provider';
 import { reminderAPI } from '../api';
 
@@ -66,7 +66,7 @@ export function useAllReminders(params?: {
 export function useReminderStats() {
   const { user, loading: authLoading } = useAuth();
 
-  const { data: analytics, error, isLoading } = useSWR(
+  const { data: analytics, error, isLoading, mutate } = useSWR(
     user ? 'reminder-analytics' : null,
     () => reminderAPI.getAnalytics()
   );
@@ -86,45 +86,124 @@ export function useReminderStats() {
     completionRate: stats.completionRate * 100, // Convert to percentage
     isLoading: authLoading || isLoading,
     error,
+    mutate,
   };
 }
 
 // Hook for reminder actions
 export function useReminderActions() {
-  const { mutate } = useAllReminders();
+  const { mutate: mutateReminders } = useAllReminders();
+  const { mutate: mutateStats } = useReminderStats();
+
+  // Helper function to invalidate all reminder-related caches
+  const invalidateReminderCaches = async () => {
+    // Invalidate all reminder data variations
+    await Promise.all([
+      globalMutate((key) => Array.isArray(key) && key[0] === 'reminders'),
+      globalMutate('reminder-analytics'),
+    ]);
+  };
 
   const completeReminder = async (customerId: string, reminderId: string) => {
     try {
+      // Optimistic update: immediately update the UI
+      await globalMutate(
+        (key) => Array.isArray(key) && key[0] === 'reminders',
+        (currentData: any) => {
+          if (!currentData) return currentData;
+          
+          return currentData.map((reminder: any) => {
+            if (reminder.id === reminderId) {
+              return {
+                ...reminder,
+                dateCompleted: new Date().toISOString(),
+                completed: true,
+              };
+            }
+            return reminder;
+          });
+        },
+        false // Don't revalidate immediately
+      );
+
+      // Make the API call
       await reminderAPI.updateReminder(customerId, reminderId, {
         dateCompleted: new Date().toISOString()
       });
-      await mutate(); // Refresh the reminders list
+      
+      // Revalidate to ensure data consistency
+      await invalidateReminderCaches();
+      
       return { success: true };
     } catch (error) {
+      // If the API call fails, revalidate to revert optimistic update
+      await invalidateReminderCaches();
       return { success: false, error };
     }
   };
 
   const reopenReminder = async (customerId: string, reminderId: string) => {
     try {
+      // Optimistic update: immediately update the UI
+      await globalMutate(
+        (key) => Array.isArray(key) && key[0] === 'reminders',
+        (currentData: any) => {
+          if (!currentData) return currentData;
+          
+          return currentData.map((reminder: any) => {
+            if (reminder.id === reminderId) {
+              return {
+                ...reminder,
+                dateCompleted: null,
+                completed: false,
+              };
+            }
+            return reminder;
+          });
+        },
+        false // Don't revalidate immediately
+      );
+
+      // Make the API call
       await reminderAPI.updateReminder(customerId, reminderId, {
         dateCompleted: null
       });
-      await mutate(); // Refresh the reminders list
+      
+      // Revalidate to ensure data consistency
+      await invalidateReminderCaches();
+      
       return { success: true };
     } catch (error) {
+      // If the API call fails, revalidate to revert optimistic update
+      await invalidateReminderCaches();
       return { success: false, error };
     }
   };
 
   const deleteReminder = async (customerId: string, reminderId: string) => {
     try {
-      // Note: We still need to use the customerAPI for deletion since it's customer-specific
+      // Optimistic update: immediately remove from UI
+      await globalMutate(
+        (key) => Array.isArray(key) && key[0] === 'reminders',
+        (currentData: any) => {
+          if (!currentData) return currentData;
+          
+          return currentData.filter((reminder: any) => reminder.id !== reminderId);
+        },
+        false // Don't revalidate immediately
+      );
+
+      // Make the API call
       const { customerAPI } = await import('../api');
       await customerAPI.deleteReminder(customerId, reminderId);
-      await mutate(); // Refresh the reminders list
+      
+      // Revalidate to ensure data consistency
+      await invalidateReminderCaches();
+      
       return { success: true };
     } catch (error) {
+      // If the API call fails, revalidate to revert optimistic update
+      await invalidateReminderCaches();
       return { success: false, error };
     }
   };

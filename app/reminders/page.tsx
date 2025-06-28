@@ -52,6 +52,7 @@ export default function RemindersPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("")
+  const [loadingActions, setLoadingActions] = useState<Set<string>>(new Set())
 
   // Filter reminders based on search and filters
   const filteredReminders = allReminders.filter(reminder => {
@@ -70,34 +71,73 @@ export default function RemindersPage() {
 
   // Handle reminder actions
   const handleCompleteReminder = async (customerId: string, reminderId: string) => {
-    const result = await completeReminder(customerId, reminderId)
+    const actionKey = `${customerId}-${reminderId}-complete`
+    setLoadingActions(prev => new Set(prev).add(actionKey))
     
-    if (result.success) {
-      handleAPISuccess("Reminder marked as completed!")
-    } else {
-      handleAPIError(result.error, "Failed to complete reminder")
+    try {
+      const result = await completeReminder(customerId, reminderId)
+      
+      if (result.success) {
+        handleAPISuccess("Reminder marked as completed!")
+      } else {
+        handleAPIError(result.error, "Failed to complete reminder")
+      }
+    } catch (error) {
+      handleAPIError(error, "Failed to complete reminder")
+    } finally {
+      setLoadingActions(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(actionKey)
+        return newSet
+      })
     }
   }
 
   const handleReopenReminder = async (customerId: string, reminderId: string) => {
-    const result = await reopenReminder(customerId, reminderId)
+    const actionKey = `${customerId}-${reminderId}-reopen`
+    setLoadingActions(prev => new Set(prev).add(actionKey))
     
-    if (result.success) {
-      handleAPISuccess("Reminder reopened!")
-    } else {
-      handleAPIError(result.error, "Failed to reopen reminder")
+    try {
+      const result = await reopenReminder(customerId, reminderId)
+      
+      if (result.success) {
+        handleAPISuccess("Reminder reopened!")
+      } else {
+        handleAPIError(result.error, "Failed to reopen reminder")
+      }
+    } catch (error) {
+      handleAPIError(error, "Failed to reopen reminder")
+    } finally {
+      setLoadingActions(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(actionKey)
+        return newSet
+      })
     }
   }
 
   const handleDeleteReminder = async (customerId: string, reminderId: string) => {
     if (!confirm("Are you sure you want to delete this reminder?")) return
     
-    const result = await deleteReminder(customerId, reminderId)
+    const actionKey = `${customerId}-${reminderId}-delete`
+    setLoadingActions(prev => new Set(prev).add(actionKey))
     
-    if (result.success) {
-      handleAPISuccess("Reminder deleted!")
-    } else {
-      handleAPIError(result.error, "Failed to delete reminder")
+    try {
+      const result = await deleteReminder(customerId, reminderId)
+      
+      if (result.success) {
+        handleAPISuccess("Reminder deleted!")
+      } else {
+        handleAPIError(result.error, "Failed to delete reminder")
+      }
+    } catch (error) {
+      handleAPIError(error, "Failed to delete reminder")
+    } finally {
+      setLoadingActions(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(actionKey)
+        return newSet
+      })
     }
   }
 
@@ -300,6 +340,7 @@ export default function RemindersPage() {
                         onComplete={handleCompleteReminder}
                         onReopen={handleReopenReminder}
                         onDelete={handleDeleteReminder}
+                        loadingActions={loadingActions}
                       />
                     </TabsContent>
                     
@@ -314,6 +355,7 @@ export default function RemindersPage() {
                         onComplete={handleCompleteReminder}
                         onReopen={handleReopenReminder}
                         onDelete={handleDeleteReminder}
+                        loadingActions={loadingActions}
                       />
                     </TabsContent>
                     
@@ -328,6 +370,7 @@ export default function RemindersPage() {
                         onComplete={handleCompleteReminder}
                         onReopen={handleReopenReminder}
                         onDelete={handleDeleteReminder}
+                        loadingActions={loadingActions}
                       />
                     </TabsContent>
                     
@@ -342,6 +385,7 @@ export default function RemindersPage() {
                         onComplete={handleCompleteReminder}
                         onReopen={handleReopenReminder}
                         onDelete={handleDeleteReminder}
+                        loadingActions={loadingActions}
                       />
                     </TabsContent>
                   </Tabs>
@@ -360,7 +404,8 @@ function RemindersList({
   reminders, 
   onComplete, 
   onReopen, 
-  onDelete 
+  onDelete,
+  loadingActions
 }: {
   reminders: Array<{
     id: string;
@@ -375,6 +420,7 @@ function RemindersList({
   onComplete: (customerId: string, reminderId: string) => void
   onReopen: (customerId: string, reminderId: string) => void
   onDelete: (customerId: string, reminderId: string) => void
+  loadingActions: Set<string>
 }) {
   if (reminders.length === 0) {
     return (
@@ -389,7 +435,7 @@ function RemindersList({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       {reminders.map((reminder) => (
         <ReminderCard
           key={`${reminder.customerId}-${reminder.id}`}
@@ -397,6 +443,7 @@ function RemindersList({
           onComplete={onComplete}
           onReopen={onReopen}
           onDelete={onDelete}
+          loadingActions={loadingActions}
         />
       ))}
     </div>
@@ -408,7 +455,8 @@ function ReminderCard({
   reminder, 
   onComplete, 
   onReopen, 
-  onDelete 
+  onDelete,
+  loadingActions
 }: {
   reminder: {
     id: string;
@@ -423,102 +471,169 @@ function ReminderCard({
   onComplete: (customerId: string, reminderId: string) => void
   onReopen: (customerId: string, reminderId: string) => void
   onDelete: (customerId: string, reminderId: string) => void
+  loadingActions: Set<string>
 }) {
   const isOverdue = !reminder.completed && new Date(reminder.dueDate) < new Date()
   const isDueToday = !reminder.completed && new Date(reminder.dueDate).toDateString() === new Date().toDateString()
 
+  // Modern badge design system
+  const badgeStyles = {
+    // Priority badges
+    priority: {
+      high: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800/50',
+      medium: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800/50',
+      low: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-800/50'
+    },
+    // Status badges
+    status: {
+      completed: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800/50',
+      overdue: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800/50',
+      today: 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950/30 dark:text-orange-400 dark:border-orange-800/50'
+    }
+  }
+
   return (
-    <Card className={`transition-all hover:shadow-md ${reminder.completed ? 'opacity-75' : ''}`}>
-      <CardContent className="p-6">
-        <div className="flex items-start justify-between">
-          <div className="flex-1 space-y-3">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                {reminder.completed ? (
-                  <IconCircleCheck className="h-5 w-5 text-green-500" />
-                ) : isOverdue ? (
-                  <IconAlertTriangle className="h-5 w-5 text-red-500" />
-                ) : isDueToday ? (
-                  <IconClock className="h-5 w-5 text-orange-500" />
-                ) : (
-                  <IconClock className="h-5 w-5 text-muted-foreground" />
+    <div className={`group relative rounded-lg border bg-card p-4 transition-all hover:shadow-sm hover:border-border/60 ${
+      reminder.completed ? 'opacity-60' : ''
+    }`}>
+      {/* Status indicator */}
+      <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-lg bg-gradient-to-b from-transparent via-border to-transparent" />
+      
+      <div className="flex items-start gap-3">
+        {/* Status icon */}
+        <div className="flex-shrink-0 mt-0.5">
+          {reminder.completed ? (
+            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/20">
+              <IconCircleCheck className="h-3 w-3 text-green-600 dark:text-green-400" />
+            </div>
+          ) : isOverdue ? (
+            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">
+              <IconAlertTriangle className="h-3 w-3 text-red-600 dark:text-red-400" />
+            </div>
+          ) : isDueToday ? (
+            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/20">
+              <IconClock className="h-3 w-3 text-orange-600 dark:text-orange-400" />
+            </div>
+          ) : (
+            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-muted">
+              <IconClock className="h-3 w-3 text-muted-foreground" />
+            </div>
+          )}
+        </div>
+
+        {/* Main content */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              {/* Title */}
+              <h3 className={`text-sm font-medium leading-5 mb-2 ${
+                reminder.completed ? 'line-through text-muted-foreground' : 'text-foreground'
+              }`}>
+                {reminder.description}
+              </h3>
+              
+              {/* Badges row */}
+              <div className="flex items-center gap-1.5 mb-2 flex-wrap">
+                {/* Priority badge */}
+                <Badge 
+                  variant="outline" 
+                  className={`text-xs px-2 py-0.5 h-5 font-medium border ${badgeStyles.priority[reminder.priority]}`}
+                >
+                  {reminder.priority}
+                </Badge>
+
+                {/* Status badges */}
+                {reminder.completed && (
+                  <Badge 
+                    variant="outline" 
+                    className={`text-xs px-2 py-0.5 h-5 font-medium border ${badgeStyles.status.completed}`}
+                  >
+                    Done
+                  </Badge>
                 )}
-                <h3 className={`font-semibold ${reminder.completed ? 'line-through text-muted-foreground' : ''}`}>
-                  {reminder.description}
-                </h3>
+                {isOverdue && !reminder.completed && (
+                  <Badge 
+                    variant="outline" 
+                    className={`text-xs px-2 py-0.5 h-5 font-medium border ${badgeStyles.status.overdue}`}
+                  >
+                    Overdue
+                  </Badge>
+                )}
+                {isDueToday && !reminder.completed && (
+                  <Badge 
+                    variant="outline" 
+                    className={`text-xs px-2 py-0.5 h-5 font-medium border ${badgeStyles.status.today}`}
+                  >
+                    Today
+                  </Badge>
+                )}
               </div>
-              <Badge 
-                variant="outline" 
-                className={`${getPriorityColor(reminder.priority)}`}
-              >
-                {reminder.priority}
-              </Badge>
-              {reminder.completed && (
-                <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                  Completed
-                </Badge>
-              )}
-              {isOverdue && !reminder.completed && (
-                <Badge variant="destructive">
-                  Overdue
-                </Badge>
-              )}
-              {isDueToday && !reminder.completed && (
-                <Badge variant="outline" className="border-orange-200 text-orange-700 bg-orange-50 dark:border-orange-800 dark:text-orange-300 dark:bg-orange-950">
-                  Due Today
-                </Badge>
-              )}
-            </div>
-            
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <IconCalendar className="h-4 w-4" />
-                <span>Due: {formatDate(reminder.dueDate)}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <IconUser className="h-4 w-4" />
-                <span>{reminder.customerName}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <IconMail className="h-4 w-4" />
-                <span>{reminder.customerEmail}</span>
+
+              {/* Meta information */}
+              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                <div className="flex items-center gap-1">
+                  <IconCalendar className="h-3 w-3" />
+                  <span>{formatDate(reminder.dueDate)}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <IconUser className="h-3 w-3" />
+                  <span className="truncate">{reminder.customerName}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <IconMail className="h-3 w-3" />
+                  <span className="truncate">{reminder.customerEmail}</span>
+                </div>
               </div>
             </div>
-          </div>
-          
-          <div className="flex items-center gap-2 ml-4">
-            {!reminder.completed ? (
+
+            {/* Actions */}
+            <div className="flex items-center gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+              {!reminder.completed ? (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => onComplete(reminder.customerId, reminder.id)}
+                  disabled={loadingActions.has(`${reminder.customerId}-${reminder.id}-complete`)}
+                  className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-950 disabled:opacity-50"
+                >
+                  {loadingActions.has(`${reminder.customerId}-${reminder.id}-complete`) ? (
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-green-600 border-t-transparent" />
+                  ) : (
+                    <IconCheck className="h-4 w-4" />
+                  )}
+                </Button>
+              ) : (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => onReopen(reminder.customerId, reminder.id)}
+                  disabled={loadingActions.has(`${reminder.customerId}-${reminder.id}-reopen`)}
+                  className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950 disabled:opacity-50"
+                >
+                  {loadingActions.has(`${reminder.customerId}-${reminder.id}-reopen`) ? (
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+                  ) : (
+                    <IconRotate className="h-4 w-4" />
+                  )}
+                </Button>
+              )}
               <Button
                 size="sm"
-                variant="outline"
-                onClick={() => onComplete(reminder.customerId, reminder.id)}
-                className="text-green-600 hover:text-green-700"
+                variant="ghost"
+                onClick={() => onDelete(reminder.customerId, reminder.id)}
+                disabled={loadingActions.has(`${reminder.customerId}-${reminder.id}-delete`)}
+                className="h-8 w-8 p-0 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950 disabled:opacity-50"
               >
-                <IconCheck className="h-4 w-4 mr-1" />
-                Complete
+                {loadingActions.has(`${reminder.customerId}-${reminder.id}-delete`) ? (
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent" />
+                ) : (
+                  <IconTrash className="h-4 w-4" />
+                )}
               </Button>
-            ) : (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => onReopen(reminder.customerId, reminder.id)}
-                className="text-blue-600 hover:text-blue-700"
-              >
-                <IconRotate className="h-4 w-4 mr-1" />
-                Reopen
-              </Button>
-            )}
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => onDelete(reminder.customerId, reminder.id)}
-              className="text-red-600 hover:text-red-700"
-            >
-              <IconTrash className="h-4 w-4" />
-            </Button>
+            </div>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 } 
