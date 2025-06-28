@@ -19,12 +19,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
 import { ReminderForm } from "@/components/reminder-form"
 import { 
   IconCalendar, 
@@ -49,7 +49,7 @@ export default function RemindersPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [priorityFilter, setPriorityFilter] = useState<string>("all")
   const [customerFilter, setCustomerFilter] = useState<string>("all")
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+  const [isAddSheetOpen, setIsAddSheetOpen] = useState(false)
   const [loadingActions, setLoadingActions] = useState<Set<string>>(new Set())
 
   // Filter reminders based on search and filters
@@ -137,12 +137,12 @@ export default function RemindersPage() {
   }
 
   const handleAddReminderSuccess = () => {
-    setIsAddDialogOpen(false)
+    setIsAddSheetOpen(false)
     // The reminders will automatically refresh due to SWR
   }
 
   const handleAddReminderCancel = () => {
-    setIsAddDialogOpen(false)
+    setIsAddSheetOpen(false)
   }
 
   if (isLoading) {
@@ -185,25 +185,24 @@ export default function RemindersPage() {
                     </div>
                     
                     {/* Add Reminder Dialog */}
-                    <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-                      <DialogTrigger asChild>
+                    <Sheet open={isAddSheetOpen} onOpenChange={setIsAddSheetOpen}>
+                      <SheetTrigger asChild>
                         <Button size="sm" className="shadow-sm">
                           <IconPlus className="mr-2 h-4 w-4" />
                           Add Reminder
                         </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0">
-                        <DialogHeader className="sr-only">
-                          <DialogTitle>Add New Reminder</DialogTitle>
-                        </DialogHeader>
-                        <div className="p-6">
-                          <ReminderForm
-                            onSuccess={handleAddReminderSuccess}
-                            onCancel={handleAddReminderCancel}
-                          />
+                      </SheetTrigger>
+                      <SheetContent side="right" className="w-[500px] sm:w-[600px] p-0">
+                        <div className="h-full flex flex-col">
+                          <div className="flex-1 overflow-y-auto p-6">
+                            <ReminderForm
+                              onSuccess={handleAddReminderSuccess}
+                              onCancel={handleAddReminderCancel}
+                            />
+                          </div>
                         </div>
-                      </DialogContent>
-                    </Dialog>
+                      </SheetContent>
+                    </Sheet>
                   </div>
                 </div>
 

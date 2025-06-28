@@ -1,5 +1,5 @@
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { initializeApp, FirebaseApp } from "firebase/app";
+import { getAuth, Auth } from "firebase/auth";
 
 // Validate required environment variables
 const requiredEnvVars = {
@@ -33,8 +33,8 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase only if we're in the browser
-let app;
-let auth;
+let app: FirebaseApp | undefined;
+let auth: Auth | undefined;
 
 if (typeof window !== 'undefined') {
   app = initializeApp(firebaseConfig);

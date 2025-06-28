@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useRef, useEffect } from "react"
+import { useState, useMemo } from "react"
 import { useCustomers } from "@/lib/hooks/use-customers"
 import { customerAPI } from "@/lib/api"
 import { handleAPIError, handleAPISuccess } from "@/lib/utils/api-utils"
@@ -9,9 +9,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { 
   IconLoader, 
@@ -19,13 +16,12 @@ import {
   IconSearch, 
   IconCalendar, 
   IconClock,
-  IconUser,
-  IconAlertCircle,
-  IconClockHour4,
-  IconCalendarTime,
   IconCalendarWeek,
-  IconCalendarMonth
+  IconCalendarMonth,
+  IconX
 } from "@tabler/icons-react"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
 
 interface ReminderFormProps {
   onSuccess?: () => void
@@ -45,7 +41,7 @@ export function ReminderForm({ onSuccess, onCancel }: ReminderFormProps) {
 
   // Filter customers based on search
   const filteredCustomers = useMemo(() => {
-    if (!searchQuery.trim()) return customers.slice(0, 5) // Show first 5 by default
+    if (!searchQuery.trim()) return []
     
     return customers.filter(customer => 
       `${customer.firstName} ${customer.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -64,30 +60,30 @@ export function ReminderForm({ onSuccess, onCancel }: ReminderFormProps) {
     { label: "Next Month", value: "next-month", icon: IconCalendarMonth },
   ]
 
-  // Priority options with visual indicators
+  // Priority options
   const priorityOptions = [
     { 
-      value: "low", 
+      value: "low" as const, 
       label: "Low", 
-      color: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-800/50",
-      icon: "🔵"
+      color: "bg-blue-500",
+      dotClass: "bg-blue-500"
     },
     { 
-      value: "medium", 
+      value: "medium" as const, 
       label: "Medium", 
-      color: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800/50",
-      icon: "🟡"
+      color: "bg-amber-500",
+      dotClass: "bg-amber-500"
     },
     { 
-      value: "high", 
+      value: "high" as const, 
       label: "High", 
-      color: "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800/50",
-      icon: "🔴"
+      color: "bg-red-500",
+      dotClass: "bg-red-500"
     },
   ]
 
-  // Quick reminder templates
-  const reminderTemplates = [
+  // Quick templates
+  const templates = [
     "Follow up on service satisfaction",
     "Schedule next appointment",
     "Send invoice reminder",
@@ -179,7 +175,7 @@ export function ReminderForm({ onSuccess, onCancel }: ReminderFormProps) {
   }
 
   return (
-    <div className="space-y-5 relative animate-in fade-in-0 slide-in-from-bottom-2 duration-300">
+    <div className="flex flex-col h-full">
       {/* Loading overlay */}
       {isLoading && (
         <div className="absolute inset-0 bg-background/80 backdrop-blur-sm rounded-lg z-10 flex items-center justify-center">
@@ -190,196 +186,177 @@ export function ReminderForm({ onSuccess, onCancel }: ReminderFormProps) {
         </div>
       )}
 
-      {/* Header */}
-      <div className="text-center space-y-3">
-        <div className="mx-auto w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-          <IconClock className="h-5 w-5 text-primary" />
-        </div>
-        <div>
+      {/* Scrollable content */}
+      <div className="flex-1 overflow-y-auto space-y-6 pt-6 pb-2">
+        {/* Header */}
+        <div className="text-center space-y-2">
           <h3 className="text-lg font-semibold">Create New Reminder</h3>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-sm text-muted-foreground">
             Set up a reminder for your customer
           </p>
         </div>
-      </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
-        {/* Customer Selection */}
-        <div className="space-y-2.5">
-          <Label className="text-sm font-medium">
-            Customer <span className="text-red-500">*</span>
-          </Label>
-          
-          {selectedCustomer ? (
-            <Card className="border-2 border-primary/20 bg-primary/5">
-              <CardContent className="p-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 bg-primary/10 rounded-full flex items-center justify-center">
-                      <IconUser className="h-3.5 w-3.5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm">{selectedCustomer.firstName} {selectedCustomer.lastName}</p>
-                      <p className="text-xs text-muted-foreground">{selectedCustomer.email}</p>
-                    </div>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSelectedCustomerId("")}
-                    className="text-muted-foreground hover:text-foreground h-7 px-2"
-                  >
-                    Change
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-2">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Customer Selection */}
+          <div className="space-y-3">
+            <Label htmlFor="customer-search" className="text-sm font-medium">Customer *</Label>
+            
+            {/* Customer search input */}
+            {!selectedCustomer && (
               <div className="relative">
-                <IconSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <IconSearch className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
+                  id="customer-search"
                   placeholder="Search customers..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 h-9"
+                  className="pl-10"
                 />
               </div>
-              
-              {filteredCustomers.length > 0 && (
-                <Card className="border shadow-sm">
-                  <CardContent className="p-1.5">
-                    <div className="space-y-0.5">
-                      {filteredCustomers.map((customer) => (
-                        <button
-                          key={customer.id}
-                          type="button"
-                          onClick={() => {
-                            setSelectedCustomerId(customer.id)
-                            setSearchQuery("")
-                          }}
-                          className="w-full text-left p-2 rounded-md hover:bg-accent transition-colors"
-                        >
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-5 h-5 bg-muted rounded-full flex items-center justify-center">
-                              <IconUser className="h-2.5 w-2.5 text-muted-foreground" />
-                            </div>
-                            <div>
-                              <p className="font-medium text-sm">{customer.firstName} {customer.lastName}</p>
-                              <p className="text-xs text-muted-foreground">{customer.email}</p>
-                            </div>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Description */}
-        <div className="space-y-2.5">
-          <Label className="text-sm font-medium">
-            Description <span className="text-red-500">*</span>
-          </Label>
-          
-          {/* Quick Templates */}
-          <div className="space-y-1.5">
-            <p className="text-xs text-muted-foreground">Quick templates:</p>
-            <div className="flex flex-wrap gap-1.5">
-              {reminderTemplates.map((template) => (
-                <Badge
-                  key={template}
-                  variant="outline"
-                  className="cursor-pointer hover:bg-accent transition-colors text-xs px-2 py-1"
-                  onClick={() => handleTemplateSelect(template)}
-                >
-                  {template}
-                </Badge>
-              ))}
-            </div>
-          </div>
-          
-          <Textarea
-            value={formData.description}
-            onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-            placeholder="Enter reminder description..."
-            rows={2}
-            className="resize-none"
-          />
-        </div>
-
-        {/* Due Date and Priority */}
-        <div className="grid grid-cols-2 gap-4">
-          {/* Due Date */}
-          <div className="space-y-2.5">
-            <Label className="text-sm font-medium">
-              Due Date <span className="text-red-500">*</span>
-            </Label>
+            )}
             
-            {/* Quick Date Options */}
-            <div className="space-y-1.5">
-              <p className="text-xs text-muted-foreground">Quick options:</p>
-              <div className="flex flex-wrap gap-1.5">
-                {quickDateOptions.map((option) => {
-                  const Icon = option.icon
-                  return (
-                    <Button
-                      key={option.value}
+            {/* Customer search results */}
+            {searchQuery && filteredCustomers.length > 0 && (
+              <div className="max-h-48 overflow-y-auto rounded-md border bg-popover">
+                <div className="p-2">
+                  {filteredCustomers.map((customer) => (
+                    <button
+                      key={customer.id}
                       type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleQuickDateSelect(option.value)}
-                      className="h-7 text-xs px-2"
+                      onClick={() => {
+                        setSelectedCustomerId(customer.id)
+                        setSearchQuery("")
+                      }}
+                      className="flex w-full items-center gap-3 rounded-sm p-2 text-left hover:bg-accent hover:text-accent-foreground"
                     >
-                      <Icon className="h-3 w-3 mr-1" />
-                      {option.label}
-                    </Button>
-                  )
-                })}
+                      <Avatar className="h-6 w-6">
+                        <AvatarFallback className="text-xs">
+                          {`${customer.firstName} ${customer.lastName}`.split(' ').map(n => n[0]).join('').toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{customer.firstName} {customer.lastName}</p>
+                        <p className="text-xs text-muted-foreground truncate">{customer.email}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Selected customer chip */}
+            {selectedCustomer && (
+              <div className="flex items-center gap-2 p-3 rounded-lg border bg-primary/5 border-primary/20">
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback className="text-sm">
+                    {`${selectedCustomer.firstName} ${selectedCustomer.lastName}`.split(' ').map(n => n[0]).join('').toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{selectedCustomer.firstName} {selectedCustomer.lastName}</p>
+                  <p className="text-xs text-muted-foreground truncate">{selectedCustomer.email}</p>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedCustomerId("")}
+                  className="h-6 w-6 p-0 hover:bg-primary/10"
+                >
+                  <IconX className="h-3 w-3" />
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Description */}
+          <div className="space-y-3">
+            <Label htmlFor="description" className="text-sm font-medium">Description *</Label>
+            <Textarea
+              id="description"
+              placeholder="Enter reminder description..."
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              rows={3}
+            />
+            
+            {/* Quick templates */}
+            <div className="space-y-2">
+              <Label className="text-xs font-medium text-muted-foreground">Quick templates</Label>
+              <div className="flex flex-wrap gap-2">
+                {templates.slice(0, 4).map((template) => (
+                  <Button
+                    key={template}
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleTemplateSelect(template)}
+                    className="text-xs h-7"
+                  >
+                    {template}
+                  </Button>
+                ))}
               </div>
             </div>
-            
+          </div>
+
+          {/* Due Date */}
+          <div className="space-y-3">
+            <Label htmlFor="due-date" className="text-sm font-medium">Due Date *</Label>
             <Input
+              id="due-date"
               type="date"
               value={formData.dueDate}
-              onChange={(e) => setFormData(prev => ({ ...prev, dueDate: e.target.value }))}
-              min={new Date().toISOString().split('T')[0]}
-              className="h-9"
+              onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+              className="max-w-xs"
             />
+            
+            {/* Quick date options */}
+            <div className="flex flex-wrap gap-2">
+              {quickDateOptions.map((option) => (
+                <Button
+                  key={option.value}
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleQuickDateSelect(option.value)}
+                  className="text-xs h-7"
+                >
+                  <option.icon className="h-3 w-3 mr-1" />
+                  {option.label}
+                </Button>
+              ))}
+            </div>
           </div>
 
           {/* Priority */}
-          <div className="space-y-2.5">
+          <div className="space-y-3">
             <Label className="text-sm font-medium">Priority</Label>
-            <div className="grid grid-cols-3 gap-1.5">
+            <div className="flex gap-2">
               {priorityOptions.map((option) => (
-                <button
+                <Button
                   key={option.value}
                   type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, priority: option.value as "low" | "medium" | "high" }))}
-                  className={`p-2.5 rounded-lg border-2 transition-all ${
+                  variant={formData.priority === option.value ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setFormData({ ...formData, priority: option.value })}
+                  className={`text-xs h-8 ${
                     formData.priority === option.value
-                      ? `${option.color} border-current`
-                      : 'border-border hover:border-border/60'
+                      ? option.color
+                      : "hover:bg-muted"
                   }`}
                 >
-                  <div className="text-center space-y-1">
-                    <div className="text-base">{option.icon}</div>
-                    <div className="text-xs font-medium">{option.label}</div>
-                  </div>
-                </button>
+                  <div className={`mr-1.5 h-2 w-2 rounded-full ${option.dotClass}`} />
+                  {option.label}
+                </Button>
               ))}
             </div>
           </div>
-        </div>
+        </form>
+      </div>
 
-        <Separator />
-
-        {/* Form Actions */}
+      {/* Fixed bottom section */}
+      <div className="border-t bg-background py-4">
         <div className="flex justify-end gap-2">
           <Button type="button" variant="outline" onClick={onCancel} size="sm">
             Cancel
@@ -389,6 +366,7 @@ export function ReminderForm({ onSuccess, onCancel }: ReminderFormProps) {
             disabled={isLoading || !selectedCustomerId || !formData.description.trim() || !formData.dueDate}
             className="min-w-[100px]"
             size="sm"
+            onClick={handleSubmit}
           >
             {isLoading ? (
               <>
@@ -403,7 +381,7 @@ export function ReminderForm({ onSuccess, onCancel }: ReminderFormProps) {
             )}
           </Button>
         </div>
-      </form>
+      </div>
     </div>
   )
 } 

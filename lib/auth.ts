@@ -26,6 +26,9 @@ export interface AuthResponse {
  */
 export async function signIn(email: string, password: string): Promise<AuthResponse> {
   try {
+    if (!auth) {
+      throw new Error('Firebase auth not initialized');
+    }
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     return {
       success: true,
@@ -66,6 +69,9 @@ export async function signUp(data: SignUpData): Promise<AuthResponse> {
     const { token } = await response.json();
 
     // Use the custom token to sign in with Firebase
+    if (!auth) {
+      throw new Error('Firebase auth not initialized');
+    }
     const userCredential = await signInWithCustomToken(auth, token);
     
     return {
@@ -85,6 +91,9 @@ export async function signUp(data: SignUpData): Promise<AuthResponse> {
  */
 export async function getIdTokenForUser(): Promise<string | null> {
   try {
+    if (!auth) {
+      return null;
+    }
     const user = auth.currentUser;
     if (!user) {
       return null;
@@ -127,6 +136,9 @@ export async function authenticatedFetch(
  */
 export async function signOut(): Promise<void> {
   try {
+    if (!auth) {
+      throw new Error('Firebase auth not initialized');
+    }
     await auth.signOut();
   } catch (error) {
     console.error('Error signing out:', error);
@@ -138,6 +150,9 @@ export async function signOut(): Promise<void> {
  * Get the current authenticated user
  */
 export function getCurrentUser(): User | null {
+  if (!auth) {
+    return null;
+  }
   return auth.currentUser;
 }
 
@@ -145,5 +160,8 @@ export function getCurrentUser(): User | null {
  * Check if user is authenticated
  */
 export function isAuthenticated(): boolean {
+  if (!auth) {
+    return false;
+  }
   return auth.currentUser !== null;
 } 
