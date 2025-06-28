@@ -179,7 +179,7 @@ export function ReminderForm({ onSuccess, onCancel }: ReminderFormProps) {
   }
 
   return (
-    <div className="space-y-6 relative animate-in fade-in-0 slide-in-from-bottom-2 duration-300">
+    <div className="space-y-5 relative animate-in fade-in-0 slide-in-from-bottom-2 duration-300">
       {/* Loading overlay */}
       {isLoading && (
         <div className="absolute inset-0 bg-background/80 backdrop-blur-sm rounded-lg z-10 flex items-center justify-center">
@@ -191,34 +191,36 @@ export function ReminderForm({ onSuccess, onCancel }: ReminderFormProps) {
       )}
 
       {/* Header */}
-      <div className="text-center space-y-2">
-        <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-          <IconClock className="h-6 w-6 text-primary" />
+      <div className="text-center space-y-3">
+        <div className="mx-auto w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+          <IconClock className="h-5 w-5 text-primary" />
         </div>
-        <h3 className="text-xl font-semibold">Create New Reminder</h3>
-        <p className="text-sm text-muted-foreground">
-          Set up a reminder for your customer
-        </p>
+        <div>
+          <h3 className="text-lg font-semibold">Create New Reminder</h3>
+          <p className="text-sm text-muted-foreground mt-1">
+            Set up a reminder for your customer
+          </p>
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-5">
         {/* Customer Selection */}
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           <Label className="text-sm font-medium">
             Customer <span className="text-red-500">*</span>
           </Label>
           
           {selectedCustomer ? (
             <Card className="border-2 border-primary/20 bg-primary/5">
-              <CardContent className="p-4">
+              <CardContent className="p-3">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                      <IconUser className="h-4 w-4 text-primary" />
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 bg-primary/10 rounded-full flex items-center justify-center">
+                      <IconUser className="h-3.5 w-3.5 text-primary" />
                     </div>
                     <div>
-                      <p className="font-medium">{selectedCustomer.firstName} {selectedCustomer.lastName}</p>
-                      <p className="text-sm text-muted-foreground">{selectedCustomer.email}</p>
+                      <p className="font-medium text-sm">{selectedCustomer.firstName} {selectedCustomer.lastName}</p>
+                      <p className="text-xs text-muted-foreground">{selectedCustomer.email}</p>
                     </div>
                   </div>
                   <Button
@@ -226,7 +228,7 @@ export function ReminderForm({ onSuccess, onCancel }: ReminderFormProps) {
                     variant="ghost"
                     size="sm"
                     onClick={() => setSelectedCustomerId("")}
-                    className="text-muted-foreground hover:text-foreground"
+                    className="text-muted-foreground hover:text-foreground h-7 px-2"
                   >
                     Change
                   </Button>
@@ -241,14 +243,14 @@ export function ReminderForm({ onSuccess, onCancel }: ReminderFormProps) {
                   placeholder="Search customers..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+                  className="pl-9 h-9"
                 />
               </div>
               
               {filteredCustomers.length > 0 && (
                 <Card className="border shadow-sm">
-                  <CardContent className="p-2">
-                    <div className="space-y-1">
+                  <CardContent className="p-1.5">
+                    <div className="space-y-0.5">
                       {filteredCustomers.map((customer) => (
                         <button
                           key={customer.id}
@@ -259,9 +261,9 @@ export function ReminderForm({ onSuccess, onCancel }: ReminderFormProps) {
                           }}
                           className="w-full text-left p-2 rounded-md hover:bg-accent transition-colors"
                         >
-                          <div className="flex items-center gap-3">
-                            <div className="w-6 h-6 bg-muted rounded-full flex items-center justify-center">
-                              <IconUser className="h-3 w-3 text-muted-foreground" />
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-5 h-5 bg-muted rounded-full flex items-center justify-center">
+                              <IconUser className="h-2.5 w-2.5 text-muted-foreground" />
                             </div>
                             <div>
                               <p className="font-medium text-sm">{customer.firstName} {customer.lastName}</p>
@@ -279,20 +281,20 @@ export function ReminderForm({ onSuccess, onCancel }: ReminderFormProps) {
         </div>
 
         {/* Description */}
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           <Label className="text-sm font-medium">
             Description <span className="text-red-500">*</span>
           </Label>
           
           {/* Quick Templates */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <p className="text-xs text-muted-foreground">Quick templates:</p>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5">
               {reminderTemplates.map((template) => (
                 <Badge
                   key={template}
                   variant="outline"
-                  className="cursor-pointer hover:bg-accent transition-colors text-xs"
+                  className="cursor-pointer hover:bg-accent transition-colors text-xs px-2 py-1"
                   onClick={() => handleTemplateSelect(template)}
                 >
                   {template}
@@ -305,86 +307,88 @@ export function ReminderForm({ onSuccess, onCancel }: ReminderFormProps) {
             value={formData.description}
             onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
             placeholder="Enter reminder description..."
-            rows={3}
+            rows={2}
             className="resize-none"
           />
         </div>
 
-        {/* Due Date */}
-        <div className="space-y-3">
-          <Label className="text-sm font-medium">
-            Due Date <span className="text-red-500">*</span>
-          </Label>
-          
-          {/* Quick Date Options */}
-          <div className="space-y-2">
-            <p className="text-xs text-muted-foreground">Quick options:</p>
-            <div className="flex flex-wrap gap-2">
-              {quickDateOptions.map((option) => {
-                const Icon = option.icon
-                return (
-                  <Button
-                    key={option.value}
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleQuickDateSelect(option.value)}
-                    className="h-8 text-xs"
-                  >
-                    <Icon className="h-3 w-3 mr-1" />
-                    {option.label}
-                  </Button>
-                )
-              })}
+        {/* Due Date and Priority */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* Due Date */}
+          <div className="space-y-2.5">
+            <Label className="text-sm font-medium">
+              Due Date <span className="text-red-500">*</span>
+            </Label>
+            
+            {/* Quick Date Options */}
+            <div className="space-y-1.5">
+              <p className="text-xs text-muted-foreground">Quick options:</p>
+              <div className="flex flex-wrap gap-1.5">
+                {quickDateOptions.map((option) => {
+                  const Icon = option.icon
+                  return (
+                    <Button
+                      key={option.value}
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleQuickDateSelect(option.value)}
+                      className="h-7 text-xs px-2"
+                    >
+                      <Icon className="h-3 w-3 mr-1" />
+                      {option.label}
+                    </Button>
+                  )
+                })}
+              </div>
             </div>
-          </div>
-          
-          <div className="space-y-2">
-            <Label className="text-xs text-muted-foreground">Date</Label>
+            
             <Input
               type="date"
               value={formData.dueDate}
               onChange={(e) => setFormData(prev => ({ ...prev, dueDate: e.target.value }))}
               min={new Date().toISOString().split('T')[0]}
+              className="h-9"
             />
           </div>
-        </div>
 
-        {/* Priority */}
-        <div className="space-y-3">
-          <Label className="text-sm font-medium">Priority</Label>
-          <div className="grid grid-cols-3 gap-2">
-            {priorityOptions.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => setFormData(prev => ({ ...prev, priority: option.value as "low" | "medium" | "high" }))}
-                className={`p-3 rounded-lg border-2 transition-all ${
-                  formData.priority === option.value
-                    ? `${option.color} border-current`
-                    : 'border-border hover:border-border/60'
-                }`}
-              >
-                <div className="text-center space-y-1">
-                  <div className="text-lg">{option.icon}</div>
-                  <div className="text-xs font-medium">{option.label}</div>
-                </div>
-              </button>
-            ))}
+          {/* Priority */}
+          <div className="space-y-2.5">
+            <Label className="text-sm font-medium">Priority</Label>
+            <div className="grid grid-cols-3 gap-1.5">
+              {priorityOptions.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, priority: option.value as "low" | "medium" | "high" }))}
+                  className={`p-2.5 rounded-lg border-2 transition-all ${
+                    formData.priority === option.value
+                      ? `${option.color} border-current`
+                      : 'border-border hover:border-border/60'
+                  }`}
+                >
+                  <div className="text-center space-y-1">
+                    <div className="text-base">{option.icon}</div>
+                    <div className="text-xs font-medium">{option.label}</div>
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
         <Separator />
 
         {/* Form Actions */}
-        <div className="flex justify-end gap-3">
-          <Button type="button" variant="outline" onClick={onCancel}>
+        <div className="flex justify-end gap-2">
+          <Button type="button" variant="outline" onClick={onCancel} size="sm">
             Cancel
           </Button>
           <Button 
             type="submit" 
             disabled={isLoading || !selectedCustomerId || !formData.description.trim() || !formData.dueDate}
-            className="min-w-[120px] relative"
+            className="min-w-[100px]"
+            size="sm"
           >
             {isLoading ? (
               <>
@@ -394,7 +398,7 @@ export function ReminderForm({ onSuccess, onCancel }: ReminderFormProps) {
             ) : (
               <>
                 <IconPlus className="h-4 w-4 mr-2" />
-                Create Reminder
+                Create
               </>
             )}
           </Button>

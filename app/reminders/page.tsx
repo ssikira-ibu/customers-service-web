@@ -176,101 +176,18 @@ export default function RemindersPage() {
               <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
                 {/* Header */}
                 <div className="px-4 lg:px-6">
-                  <div className="flex flex-col gap-2">
-                    <h1 className="text-3xl font-bold tracking-tight">Reminders</h1>
-                    <p className="text-muted-foreground">
-                      Manage and track all customer reminders
-                    </p>
-                  </div>
-                </div>
-
-                {/* Stats Cards */}
-                <div className="px-4 lg:px-6">
-                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                    <Card>
-                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Reminders</CardTitle>
-                        <IconClock className="h-4 w-4 text-muted-foreground" />
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-2xl font-bold">{stats.total}</div>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Active</CardTitle>
-                        <IconClockHour4 className="h-4 w-4 text-muted-foreground" />
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-2xl font-bold">{stats.active}</div>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Overdue</CardTitle>
-                        <IconAlertTriangle className="h-4 w-4 text-red-500" />
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-2xl font-bold text-red-600">{stats.overdue}</div>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Completion Rate</CardTitle>
-                        <IconCircleCheck className="h-4 w-4 text-green-500" />
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-2xl font-bold text-green-600">
-                          {stats.completionRate.toFixed(1)}%
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </div>
-
-                {/* Filters and Search */}
-                <div className="px-4 lg:px-6">
-                  <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                    <div className="flex flex-1 items-center space-x-2">
-                      <div className="relative flex-1 max-w-sm">
-                        <IconSearch className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          placeholder="Search reminders..."
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          className="pl-8"
-                        />
-                      </div>
-                      <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                        <SelectTrigger className="w-32">
-                          <SelectValue placeholder="Priority" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Priorities</SelectItem>
-                          <SelectItem value="high">High</SelectItem>
-                          <SelectItem value="medium">Medium</SelectItem>
-                          <SelectItem value="low">Low</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Select value={customerFilter} onValueChange={setCustomerFilter}>
-                        <SelectTrigger className="w-40">
-                          <SelectValue placeholder="Customer" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Customers</SelectItem>
-                          {customers.map((customer) => (
-                            <SelectItem key={customer.id} value={customer.id}>
-                              {customer.firstName} {customer.lastName}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                  <div className="flex items-center justify-between">
+                    <div className="flex flex-col gap-1">
+                      <h1 className="text-2xl font-semibold tracking-tight">Reminders</h1>
+                      <p className="text-sm text-muted-foreground">
+                        {stats.total} total • {stats.active} active • {stats.overdue} overdue
+                      </p>
                     </div>
                     
                     {/* Add Reminder Dialog */}
                     <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                       <DialogTrigger asChild>
-                        <Button className="shadow-sm">
+                        <Button size="sm" className="shadow-sm">
                           <IconPlus className="mr-2 h-4 w-4" />
                           Add Reminder
                         </Button>
@@ -290,17 +207,144 @@ export default function RemindersPage() {
                   </div>
                 </div>
 
+                {/* Stats Cards */}
+                <div className="px-4 lg:px-6">
+                  <div className="flex items-center gap-4 p-3 bg-muted/30 rounded-lg border">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                      <span className="text-sm font-medium text-muted-foreground">Total</span>
+                      <span className="text-lg font-semibold">{stats.total}</span>
+                    </div>
+                    
+                    <div className="w-px h-6 bg-border"></div>
+                    
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                      <span className="text-sm font-medium text-muted-foreground">Active</span>
+                      <span className="text-lg font-semibold">{stats.active}</span>
+                    </div>
+                    
+                    <div className="w-px h-6 bg-border"></div>
+                    
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                      <span className="text-sm font-medium text-muted-foreground">Overdue</span>
+                      <span className="text-lg font-semibold text-red-600 dark:text-red-400">{stats.overdue}</span>
+                    </div>
+                    
+                    <div className="w-px h-6 bg-border"></div>
+                    
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                      <span className="text-sm font-medium text-muted-foreground">Completion</span>
+                      <span className="text-lg font-semibold text-purple-600 dark:text-purple-400">
+                        {stats.completionRate.toFixed(1)}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Filters and Search */}
+                <div className="px-4 lg:px-6">
+                  <div className="flex flex-col gap-3">
+                    {/* Search Bar */}
+                    <div className="relative max-w-sm">
+                      <IconSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search reminders or customers..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-9 h-9"
+                      />
+                    </div>
+                    
+                    {/* Filter Pills */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs font-medium text-muted-foreground mr-1">Priority:</span>
+                        <div className="flex gap-1">
+                          <button
+                            onClick={() => setPriorityFilter("all")}
+                            className={`px-2 py-1 text-xs rounded-md transition-colors ${
+                              priorityFilter === "all"
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-muted hover:bg-muted/80 text-muted-foreground"
+                            }`}
+                          >
+                            All
+                          </button>
+                          <button
+                            onClick={() => setPriorityFilter("high")}
+                            className={`px-2 py-1 text-xs rounded-md transition-colors ${
+                              priorityFilter === "high"
+                                ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
+                                : "bg-muted hover:bg-muted/80 text-muted-foreground"
+                            }`}
+                          >
+                            High
+                          </button>
+                          <button
+                            onClick={() => setPriorityFilter("medium")}
+                            className={`px-2 py-1 text-xs rounded-md transition-colors ${
+                              priorityFilter === "medium"
+                                ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+                                : "bg-muted hover:bg-muted/80 text-muted-foreground"
+                            }`}
+                          >
+                            Medium
+                          </button>
+                          <button
+                            onClick={() => setPriorityFilter("low")}
+                            className={`px-2 py-1 text-xs rounded-md transition-colors ${
+                              priorityFilter === "low"
+                                ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+                                : "bg-muted hover:bg-muted/80 text-muted-foreground"
+                            }`}
+                          >
+                            Low
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs font-medium text-muted-foreground mr-1">Customer:</span>
+                        <Select value={customerFilter} onValueChange={setCustomerFilter}>
+                          <SelectTrigger className="h-7 px-2 text-xs border-0 bg-muted hover:bg-muted/80">
+                            <SelectValue placeholder="All customers" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Customers</SelectItem>
+                            {customers.map((customer) => (
+                              <SelectItem key={customer.id} value={customer.id}>
+                                {customer.firstName} {customer.lastName}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Reminders List */}
                 <div className="px-4 lg:px-6">
                   <Tabs defaultValue="all" className="w-full">
-                    <TabsList className="grid w-full grid-cols-4">
-                      <TabsTrigger value="all">All ({allReminders.length})</TabsTrigger>
-                      <TabsTrigger value="active">Active ({activeReminders.length})</TabsTrigger>
-                      <TabsTrigger value="overdue">Overdue ({overdueReminders.length})</TabsTrigger>
-                      <TabsTrigger value="completed">Completed ({completedReminders.length})</TabsTrigger>
+                    <TabsList className="grid w-full grid-cols-4 h-9">
+                      <TabsTrigger value="all" className="text-xs font-medium">
+                        All ({allReminders.length})
+                      </TabsTrigger>
+                      <TabsTrigger value="active" className="text-xs font-medium">
+                        Active ({activeReminders.length})
+                      </TabsTrigger>
+                      <TabsTrigger value="overdue" className="text-xs font-medium">
+                        Overdue ({overdueReminders.length})
+                      </TabsTrigger>
+                      <TabsTrigger value="completed" className="text-xs font-medium">
+                        Completed ({completedReminders.length})
+                      </TabsTrigger>
                     </TabsList>
                     
-                    <TabsContent value="all" className="mt-6">
+                    <TabsContent value="all" className="mt-4">
                       <RemindersList 
                         reminders={filteredReminders}
                         onComplete={handleCompleteReminder}
@@ -310,7 +354,7 @@ export default function RemindersPage() {
                       />
                     </TabsContent>
                     
-                    <TabsContent value="active" className="mt-6">
+                    <TabsContent value="active" className="mt-4">
                       <RemindersList 
                         reminders={activeReminders.filter(r => 
                           (searchQuery === "" || 
@@ -326,7 +370,7 @@ export default function RemindersPage() {
                       />
                     </TabsContent>
                     
-                    <TabsContent value="overdue" className="mt-6">
+                    <TabsContent value="overdue" className="mt-4">
                       <RemindersList 
                         reminders={overdueReminders.filter(r => 
                           (searchQuery === "" || 
@@ -342,7 +386,7 @@ export default function RemindersPage() {
                       />
                     </TabsContent>
                     
-                    <TabsContent value="completed" className="mt-6">
+                    <TabsContent value="completed" className="mt-4">
                       <RemindersList 
                         reminders={completedReminders.filter(r => 
                           (searchQuery === "" || 
@@ -462,11 +506,15 @@ function ReminderCard({
   }
 
   return (
-    <div className={`group relative rounded-lg border bg-card p-4 transition-all hover:shadow-sm hover:border-border/60 ${
+    <div className={`group relative rounded-lg border bg-card p-3 transition-all hover:shadow-sm hover:border-border/60 ${
       reminder.completed ? 'opacity-60' : ''
     }`}>
-      {/* Status indicator */}
-      <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-lg bg-gradient-to-b from-transparent via-border to-transparent" />
+      {/* Priority indicator */}
+      <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-lg ${
+        reminder.priority === 'high' ? 'bg-red-500' :
+        reminder.priority === 'medium' ? 'bg-amber-500' :
+        'bg-blue-500'
+      }`} />
       
       <div className="flex items-start gap-3">
         {/* Status icon */}
@@ -494,52 +542,52 @@ function ReminderCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
-              {/* Title */}
-              <h3 className={`text-sm font-medium leading-5 mb-2 ${
-                reminder.completed ? 'line-through text-muted-foreground' : 'text-foreground'
-              }`}>
-                {reminder.description}
-              </h3>
-              
-              {/* Badges row */}
-              <div className="flex items-center gap-1.5 mb-2 flex-wrap">
-                {/* Priority badge */}
-                <Badge 
-                  variant="outline" 
-                  className={`text-xs px-2 py-0.5 h-5 font-medium border ${badgeStyles.priority[reminder.priority]}`}
-                >
-                  {reminder.priority}
-                </Badge>
-
-                {/* Status badges */}
-                {reminder.completed && (
+              {/* Title and badges */}
+              <div className="flex items-start gap-2 mb-1">
+                <h3 className={`text-sm font-medium leading-5 flex-1 ${
+                  reminder.completed ? 'line-through text-muted-foreground' : 'text-foreground'
+                }`}>
+                  {reminder.description}
+                </h3>
+                
+                {/* Compact badges */}
+                <div className="flex items-center gap-1 flex-shrink-0">
                   <Badge 
                     variant="outline" 
-                    className={`text-xs px-2 py-0.5 h-5 font-medium border ${badgeStyles.status.completed}`}
+                    className={`text-xs px-1.5 py-0 h-5 font-medium border ${badgeStyles.priority[reminder.priority]}`}
                   >
-                    Done
+                    {reminder.priority}
                   </Badge>
-                )}
-                {isOverdue && !reminder.completed && (
-                  <Badge 
-                    variant="outline" 
-                    className={`text-xs px-2 py-0.5 h-5 font-medium border ${badgeStyles.status.overdue}`}
-                  >
-                    Overdue
-                  </Badge>
-                )}
-                {isDueToday && !reminder.completed && (
-                  <Badge 
-                    variant="outline" 
-                    className={`text-xs px-2 py-0.5 h-5 font-medium border ${badgeStyles.status.today}`}
-                  >
-                    Today
-                  </Badge>
-                )}
+                  
+                  {reminder.completed && (
+                    <Badge 
+                      variant="outline" 
+                      className={`text-xs px-1.5 py-0 h-5 font-medium border ${badgeStyles.status.completed}`}
+                    >
+                      Done
+                    </Badge>
+                  )}
+                  {isOverdue && !reminder.completed && (
+                    <Badge 
+                      variant="outline" 
+                      className={`text-xs px-1.5 py-0 h-5 font-medium border ${badgeStyles.status.overdue}`}
+                    >
+                      Overdue
+                    </Badge>
+                  )}
+                  {isDueToday && !reminder.completed && (
+                    <Badge 
+                      variant="outline" 
+                      className={`text-xs px-1.5 py-0 h-5 font-medium border ${badgeStyles.status.today}`}
+                    >
+                      Today
+                    </Badge>
+                  )}
+                </div>
               </div>
 
               {/* Meta information */}
-              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+              <div className="flex items-center gap-3 text-xs text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <IconCalendar className="h-3 w-3" />
                   <span>{formatDate(reminder.dueDate)}</span>
@@ -556,19 +604,19 @@ function ReminderCard({
             </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
               {!reminder.completed ? (
                 <Button
                   size="sm"
                   variant="ghost"
                   onClick={() => onComplete(reminder.customerId, reminder.id)}
                   disabled={loadingActions.has(`${reminder.customerId}-${reminder.id}-complete`)}
-                  className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-950 disabled:opacity-50"
+                  className="h-7 w-7 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-950 disabled:opacity-50"
                 >
                   {loadingActions.has(`${reminder.customerId}-${reminder.id}-complete`) ? (
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-green-600 border-t-transparent" />
+                    <div className="h-3 w-3 animate-spin rounded-full border-2 border-green-600 border-t-transparent" />
                   ) : (
-                    <IconCheck className="h-4 w-4" />
+                    <IconCheck className="h-3 w-3" />
                   )}
                 </Button>
               ) : (
@@ -577,12 +625,12 @@ function ReminderCard({
                   variant="ghost"
                   onClick={() => onReopen(reminder.customerId, reminder.id)}
                   disabled={loadingActions.has(`${reminder.customerId}-${reminder.id}-reopen`)}
-                  className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950 disabled:opacity-50"
+                  className="h-7 w-7 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950 disabled:opacity-50"
                 >
                   {loadingActions.has(`${reminder.customerId}-${reminder.id}-reopen`) ? (
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+                    <div className="h-3 w-3 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
                   ) : (
-                    <IconRotate className="h-4 w-4" />
+                    <IconRotate className="h-3 w-3" />
                   )}
                 </Button>
               )}
@@ -591,12 +639,12 @@ function ReminderCard({
                 variant="ghost"
                 onClick={() => onDelete(reminder.customerId, reminder.id)}
                 disabled={loadingActions.has(`${reminder.customerId}-${reminder.id}-delete`)}
-                className="h-8 w-8 p-0 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950 disabled:opacity-50"
+                className="h-7 w-7 p-0 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950 disabled:opacity-50"
               >
                 {loadingActions.has(`${reminder.customerId}-${reminder.id}-delete`) ? (
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent" />
+                  <div className="h-3 w-3 animate-spin rounded-full border-2 border-red-600 border-t-transparent" />
                 ) : (
-                  <IconTrash className="h-4 w-4" />
+                  <IconTrash className="h-3 w-3" />
                 )}
               </Button>
             </div>
