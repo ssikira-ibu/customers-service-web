@@ -15,6 +15,12 @@ export interface Customer {
   addresses: Address[];
   notes: Note[];
   reminders?: Reminder[];
+  count?: {
+    phones: number;
+    addresses: number;
+    notes: number;
+    reminders: number;
+  };
 }
 
 export interface Phone {

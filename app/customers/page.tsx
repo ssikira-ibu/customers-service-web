@@ -1,7 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { useCustomers, useCustomerSearch } from "@/lib/hooks/use-customers";
+import { useState, useMemo } from "react";
+import {
+  useCustomers,
+  useCustomerSearch,
+  useCustomerMutations,
+} from "@/lib/hooks/use-customers";
 import { ProtectedLayout } from "@/components/layout/protected-layout";
 import { Loading } from "@/components/ui/loading";
 import { handleAPIError } from "@/lib/utils/api-utils";
@@ -19,6 +23,37 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { CustomerForm } from "@/components/customer-form";
 import {
   IconPlus,
@@ -29,14 +64,36 @@ import {
   IconEye,
   IconEdit,
   IconTrash,
+  IconDotsVertical,
+  IconFilter,
+  IconSortAscending,
+  IconSortDescending,
+  IconCalendar,
+  IconNotes,
+  IconMapPin,
+  IconRefresh,
+  IconChevronUp,
+  IconChevronDown,
 } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { toast } from "sonner";
+import { Customer } from "@/lib/api";
+
+type SortField = "name" | "email" | "createdAt";
+type SortOrder = "asc" | "desc";
 
 export default function CustomersPage() {
-  const { customers, isLoading, error } = useCustomers();
+  const { customers, isLoading, error, refreshCustomers } = useCustomers();
+  const { deleteCustomer } = useCustomerMutations();
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
+  const [sortField, setSortField] = useState<SortField>("name");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(
+    null
+  );
   const router = useRouter();
 
   // Use search hook when query is provided
@@ -45,6 +102,38 @@ export default function CustomersPage() {
   // Use search results if query exists, otherwise use all customers
   const displayedCustomers = searchQuery ? searchResults : customers;
 
+  // Sort customers
+  const sortedCustomers = useMemo(() => {
+    return [...displayedCustomers].sort((a, b) => {
+      let aValue: string;
+      let bValue: string;
+
+      switch (sortField) {
+        case "name":
+          aValue = `${a.firstName} ${a.lastName}`.toLowerCase();
+          bValue = `${b.firstName} ${b.lastName}`.toLowerCase();
+          break;
+        case "email":
+          aValue = a.email.toLowerCase();
+          bValue = b.email.toLowerCase();
+          break;
+        case "createdAt":
+          aValue = a.createdAt;
+          bValue = b.createdAt;
+          break;
+        default:
+          aValue = `${a.firstName} ${a.lastName}`.toLowerCase();
+          bValue = `${b.firstName} ${b.lastName}`.toLowerCase();
+      }
+
+      if (sortOrder === "asc") {
+        return aValue.localeCompare(bValue);
+      } else {
+        return bValue.localeCompare(aValue);
+      }
+    });
+  }, [displayedCustomers, sortField, sortOrder]);
+
   // Handle errors
   if (error) {
     handleAPIError(error, "Failed to load customers");
@@ -52,12 +141,83 @@ export default function CustomersPage() {
 
   const handleAddCustomerSuccess = () => {
     setIsAddSheetOpen(false);
-    // The customers will automatically refresh due to SWR
+    toast.success("Customer created successfully");
+    refreshCustomers();
   };
 
   const handleAddCustomerCancel = () => {
     setIsAddSheetOpen(false);
   };
+
+  const handleDeleteCustomer = async () => {
+    if (!customerToDelete) return;
+
+    try {
+      const result = await deleteCustomer(customerToDelete.id);
+      if (result.success) {
+        toast.success("Customer deleted successfully");
+        setDeleteDialogOpen(false);
+        setCustomerToDelete(null);
+      } else {
+        handleAPIError(result.error, "Failed to delete customer");
+      }
+    } catch (error) {
+      handleAPIError(error, "Failed to delete customer");
+    }
+  };
+
+  const openDeleteDialog = (customer: Customer) => {
+    setCustomerToDelete(customer);
+    setDeleteDialogOpen(true);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  const getInitials = (firstName: string, lastName: string) => {
+    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  };
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortOrder("asc");
+    }
+  };
+
+  const SortableHeader = ({
+    field,
+    children,
+  }: {
+    field: SortField;
+    children: React.ReactNode;
+  }) => (
+    <Button
+      variant="ghost"
+      onClick={() => handleSort(field)}
+      className="h-auto p-0 font-medium hover:bg-transparent"
+    >
+      <div className="flex items-center gap-1">
+        {children}
+        {sortField === field ? (
+          sortOrder === "asc" ? (
+            <IconChevronUp className="h-4 w-4" />
+          ) : (
+            <IconChevronDown className="h-4 w-4" />
+          )
+        ) : (
+          <div className="w-4" />
+        )}
+      </div>
+    </Button>
+  );
 
   if (isLoading) {
     return (
@@ -143,135 +303,297 @@ export default function CustomersPage() {
                   </div>
                 </div>
 
-                {/* Customers List */}
+                {/* Customers Table */}
                 <div className="px-4 lg:px-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <IconUsers className="h-5 w-5" />
-                        Customer List
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      {displayedCustomers.length === 0 ? (
-                        <div className="text-center py-8">
-                          <IconUsers className="mx-auto h-12 w-12 text-muted-foreground" />
-                          <h3 className="mt-4 text-lg font-medium">
-                            No customers found
-                          </h3>
-                          <p className="mt-2 text-sm text-muted-foreground">
-                            {searchQuery
-                              ? "Try adjusting your search terms"
-                              : "Get started by adding your first customer"}
-                          </p>
-                          {!searchQuery && (
-                            <Button
-                              className="mt-4"
-                              onClick={() => setIsAddSheetOpen(true)}
-                            >
-                              <IconPlus className="mr-2 h-4 w-4" />
-                              Add Customer
-                            </Button>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="space-y-4">
-                          {displayedCustomers.map((customer) => (
-                            <CustomerCard
-                              key={customer.id}
-                              customer={customer}
-                              onView={() =>
-                                router.push(`/customers/${customer.id}`)
-                              }
-                            />
-                          ))}
-                        </div>
+                  {sortedCustomers.length === 0 ? (
+                    <div className="text-center py-12">
+                      <IconUsers className="mx-auto h-12 w-12 text-muted-foreground" />
+                      <h3 className="mt-4 text-lg font-medium">
+                        No customers found
+                      </h3>
+                      <p className="mt-2 text-sm text-muted-foreground">
+                        {searchQuery
+                          ? "Try adjusting your search terms"
+                          : "Get started by adding your first customer"}
+                      </p>
+                      {!searchQuery && (
+                        <Button
+                          className="mt-4"
+                          onClick={() => setIsAddSheetOpen(true)}
+                        >
+                          <IconPlus className="mr-2 h-4 w-4" />
+                          Add Customer
+                        </Button>
                       )}
-                    </CardContent>
-                  </Card>
+                    </div>
+                  ) : (
+                    <div className="rounded-lg border bg-card shadow-sm">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="border-b">
+                            <TableHead>
+                              <SortableHeader field="name">
+                                Customer
+                              </SortableHeader>
+                            </TableHead>
+                            <TableHead>
+                              <SortableHeader field="email">
+                                Contact Information
+                              </SortableHeader>
+                            </TableHead>
+                            <TableHead>Recent Activity</TableHead>
+                            <TableHead>
+                              <SortableHeader field="createdAt">
+                                Joined
+                              </SortableHeader>
+                            </TableHead>
+                            <TableHead className="w-[60px]"></TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {sortedCustomers.map((customer) => (
+                            <TableRow
+                              key={customer.id}
+                              className="hover:bg-muted/30 transition-colors"
+                            >
+                              <TableCell className="py-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center border border-primary/20">
+                                    <span className="text-sm font-semibold text-primary">
+                                      {getInitials(
+                                        customer.firstName,
+                                        customer.lastName
+                                      )}
+                                    </span>
+                                  </div>
+                                  <div className="min-w-0">
+                                    <div className="font-semibold text-foreground">
+                                      {customer.firstName} {customer.lastName}
+                                    </div>
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell className="py-4">
+                                <div className="space-y-1">
+                                  <a
+                                    href={`mailto:${customer.email}`}
+                                    className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50 transition-colors group max-w-fit"
+                                  >
+                                    <IconMail className="h-4 w-4 text-muted-foreground group-hover:text-primary flex-shrink-0" />
+                                    <span className="text-sm truncate max-w-[220px] font-medium text-foreground group-hover:text-primary">
+                                      {customer.email}
+                                    </span>
+                                  </a>
+                                  {customer.phones &&
+                                    customer.phones.length > 0 && (
+                                      <>
+                                        {customer.phones
+                                          .slice(0, 2)
+                                          .map((phone, index) => (
+                                            <a
+                                              key={phone.id || index}
+                                              href={`tel:${phone.phoneNumber}`}
+                                              className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50 transition-colors group max-w-fit"
+                                            >
+                                              <IconPhone className="h-4 w-4 text-muted-foreground group-hover:text-primary flex-shrink-0" />
+                                              <span className="text-sm truncate max-w-[220px] font-medium text-foreground group-hover:text-primary">
+                                                {phone.phoneNumber}
+                                                {phone.designation && (
+                                                  <span className="text-muted-foreground ml-2 text-xs">
+                                                    • {phone.designation}
+                                                  </span>
+                                                )}
+                                              </span>
+                                            </a>
+                                          ))}
+                                        {customer.phones.length > 2 && (
+                                          <div className="flex items-center gap-2 px-2 py-1">
+                                            <IconPhone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                            <span className="text-xs text-muted-foreground">
+                                              +{customer.phones.length - 2} more
+                                              phone
+                                              {customer.phones.length - 2 !== 1
+                                                ? "s"
+                                                : ""}
+                                            </span>
+                                          </div>
+                                        )}
+                                      </>
+                                    )}
+                                </div>
+                              </TableCell>
+                              <TableCell className="py-4">
+                                <div className="space-y-1">
+                                  {(() => {
+                                    const notesCount =
+                                      customer.count?.notes ||
+                                      customer.notes?.length ||
+                                      0;
+                                    const remindersCount =
+                                      customer.count?.reminders ||
+                                      customer.reminders?.length ||
+                                      0;
+                                    const phonesCount =
+                                      customer.phones?.length || 0;
+                                    const hasActivity =
+                                      notesCount > 0 ||
+                                      remindersCount > 0 ||
+                                      phonesCount > 1;
+
+                                    return (
+                                      <>
+                                        {notesCount > 0 && (
+                                          <div className="flex items-center gap-2">
+                                            <IconNotes className="h-4 w-4 text-blue-500/70 flex-shrink-0" />
+                                            <span className="text-sm text-foreground">
+                                              {notesCount} note
+                                              {notesCount !== 1 ? "s" : ""}
+                                            </span>
+                                          </div>
+                                        )}
+                                        {remindersCount > 0 && (
+                                          <div className="flex items-center gap-2">
+                                            <IconCalendar className="h-4 w-4 text-amber-500/70 flex-shrink-0" />
+                                            <span className="text-sm text-foreground">
+                                              {remindersCount} reminder
+                                              {remindersCount !== 1 ? "s" : ""}
+                                            </span>
+                                          </div>
+                                        )}
+                                        {phonesCount > 1 && (
+                                          <div className="flex items-center gap-2">
+                                            <IconPhone className="h-4 w-4 text-emerald-500/70 flex-shrink-0" />
+                                            <span className="text-sm text-foreground">
+                                              {phonesCount} phone numbers
+                                            </span>
+                                          </div>
+                                        )}
+                                        {!hasActivity && (
+                                          <div className="flex items-center gap-2">
+                                            <div className="w-2 h-2 bg-muted-foreground/40 rounded-full flex-shrink-0"></div>
+                                            <span className="text-xs text-muted-foreground">
+                                              Limited activity
+                                            </span>
+                                          </div>
+                                        )}
+                                      </>
+                                    );
+                                  })()}
+                                </div>
+                              </TableCell>
+                              <TableCell className="py-4">
+                                <div className="text-sm text-muted-foreground">
+                                  {formatDate(customer.createdAt)}
+                                </div>
+                              </TableCell>
+                              <TableCell className="py-4">
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-8 w-8 p-0 hover:bg-muted"
+                                    >
+                                      <IconDotsVertical className="h-4 w-4" />
+                                      <span className="sr-only">Open menu</span>
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent
+                                    align="end"
+                                    className="w-56"
+                                  >
+                                    <DropdownMenuLabel>
+                                      Actions
+                                    </DropdownMenuLabel>
+                                    <DropdownMenuItem asChild>
+                                      <Link
+                                        href={`/customers/${customer.id}`}
+                                        className="cursor-pointer"
+                                      >
+                                        <IconEye className="mr-2 h-4 w-4" />
+                                        View Details
+                                      </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem asChild>
+                                      <Link
+                                        href={`/customers/${customer.id}?action=add-phone`}
+                                        className="cursor-pointer"
+                                      >
+                                        <IconPhone className="mr-2 h-4 w-4" />
+                                        Add Phone Number
+                                      </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                      <Link
+                                        href={`/customers/${customer.id}?action=add-reminder`}
+                                        className="cursor-pointer"
+                                      >
+                                        <IconCalendar className="mr-2 h-4 w-4" />
+                                        Add Reminder
+                                      </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                      <Link
+                                        href={`/customers/${customer.id}?action=add-address`}
+                                        className="cursor-pointer"
+                                      >
+                                        <IconMapPin className="mr-2 h-4 w-4" />
+                                        Add Address
+                                      </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                      className="text-destructive focus:text-destructive cursor-pointer"
+                                      onClick={() => openDeleteDialog(customer)}
+                                    >
+                                      <IconTrash className="mr-2 h-4 w-4" />
+                                      Delete Customer
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           </div>
         </SidebarInset>
       </SidebarProvider>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Customer</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete{" "}
+              <span className="font-medium">
+                {customerToDelete?.firstName} {customerToDelete?.lastName}
+              </span>
+              ? This action cannot be undone and will permanently remove all
+              associated data including notes, reminders, and contact
+              information.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteCustomer}>
+              Delete Customer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </ProtectedLayout>
-  );
-}
-
-function CustomerCard({
-  customer,
-  onView,
-}: {
-  customer: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    phones?: Array<{ phoneNumber: string; designation: string }>;
-    status?: string;
-  };
-  onView: () => void;
-}) {
-  return (
-    <Link
-      href={`/customers/${customer.id}`}
-      className="block group focus:outline-none focus:ring-2 focus:ring-primary/50 rounded-lg"
-    >
-      <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors group-hover:bg-muted/50">
-        <div className="flex items-center gap-4">
-          <div className="flex-shrink-0">
-            <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-              <IconUsers className="h-5 w-5 text-primary" />
-            </div>
-          </div>
-
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm font-medium truncate">
-                {customer.firstName} {customer.lastName}
-              </h3>
-              {customer.status && (
-                <Badge variant="outline" className="text-xs">
-                  {customer.status}
-                </Badge>
-              )}
-            </div>
-
-            <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <IconMail className="h-3 w-3" />
-                <span className="truncate">{customer.email}</span>
-              </div>
-
-              {customer.phones && customer.phones.length > 0 && (
-                <div className="flex items-center gap-1">
-                  <IconPhone className="h-3 w-3" />
-                  <span className="truncate">
-                    {customer.phones[0].phoneNumber}
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            tabIndex={-1}
-            onClick={(e) => {
-              e.preventDefault();
-              onView();
-            }}
-            className="h-8 w-8 p-0"
-          >
-            <IconEye className="h-4 w-4" />
-            <span className="sr-only">View customer</span>
-          </Button>
-        </div>
-      </div>
-    </Link>
   );
 }
