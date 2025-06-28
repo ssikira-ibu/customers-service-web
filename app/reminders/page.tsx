@@ -21,7 +21,6 @@ import { Input } from "@/components/ui/input"
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -51,7 +50,6 @@ export default function RemindersPage() {
   const [priorityFilter, setPriorityFilter] = useState<string>("all")
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
-  const [selectedCustomerId, setSelectedCustomerId] = useState<string>("")
   const [loadingActions, setLoadingActions] = useState<Set<string>>(new Set())
 
   // Filter reminders based on search and filters
@@ -143,13 +141,11 @@ export default function RemindersPage() {
 
   const handleAddReminderSuccess = () => {
     setIsAddDialogOpen(false)
-    setSelectedCustomerId("")
     // The reminders will automatically refresh due to SWR
   }
 
   const handleAddReminderCancel = () => {
     setIsAddDialogOpen(false)
-    setSelectedCustomerId("")
   }
 
   if (isLoading) {
@@ -275,49 +271,20 @@ export default function RemindersPage() {
                     {/* Add Reminder Dialog */}
                     <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                       <DialogTrigger asChild>
-                        <Button>
+                        <Button className="shadow-sm">
                           <IconPlus className="mr-2 h-4 w-4" />
                           Add Reminder
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                        <DialogHeader>
+                      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0">
+                        <DialogHeader className="sr-only">
                           <DialogTitle>Add New Reminder</DialogTitle>
-                          <DialogDescription>
-                            Create a new reminder for a customer
-                          </DialogDescription>
                         </DialogHeader>
-                        
-                        <div className="space-y-6">
-                          {/* Customer Selection */}
-                          <div className="space-y-2">
-                            <label className="text-sm font-medium">Select Customer *</label>
-                            <Select 
-                              value={selectedCustomerId} 
-                              onValueChange={setSelectedCustomerId}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Choose a customer" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {customers.map((customer) => (
-                                  <SelectItem key={customer.id} value={customer.id}>
-                                    {customer.firstName} {customer.lastName} ({customer.email})
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          {/* Reminder Form */}
-                          {selectedCustomerId && (
-                            <ReminderForm
-                              customerId={selectedCustomerId}
-                              customerName={customers.find(c => c.id === selectedCustomerId)?.firstName + " " + customers.find(c => c.id === selectedCustomerId)?.lastName || "Customer"}
-                              onSuccess={handleAddReminderSuccess}
-                              onCancel={handleAddReminderCancel}
-                            />
-                          )}
+                        <div className="p-6">
+                          <ReminderForm
+                            onSuccess={handleAddReminderSuccess}
+                            onCancel={handleAddReminderCancel}
+                          />
                         </div>
                       </DialogContent>
                     </Dialog>
