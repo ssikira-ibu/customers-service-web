@@ -48,7 +48,7 @@ export default function RemindersPage() {
   const { completeReminder, reopenReminder, deleteReminder } = useReminderActions()
   const [searchQuery, setSearchQuery] = useState("")
   const [priorityFilter, setPriorityFilter] = useState<string>("all")
-  const [statusFilter, setStatusFilter] = useState<string>("all")
+  const [customerFilter, setCustomerFilter] = useState<string>("all")
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [loadingActions, setLoadingActions] = useState<Set<string>>(new Set())
 
@@ -59,12 +59,9 @@ export default function RemindersPage() {
       reminder.customerName.toLowerCase().includes(searchQuery.toLowerCase())
     
     const matchesPriority = priorityFilter === "all" || reminder.priority === priorityFilter
-    const matchesStatus = statusFilter === "all" || 
-      (statusFilter === "active" && !reminder.completed) ||
-      (statusFilter === "completed" && reminder.completed) ||
-      (statusFilter === "overdue" && !reminder.completed && new Date(reminder.dueDate) < new Date())
+    const matchesCustomer = customerFilter === "all" || reminder.customerId === customerFilter
 
-    return matchesSearch && matchesPriority && matchesStatus
+    return matchesSearch && matchesPriority && matchesCustomer
   })
 
   // Handle reminder actions
@@ -255,15 +252,17 @@ export default function RemindersPage() {
                           <SelectItem value="low">Low</SelectItem>
                         </SelectContent>
                       </Select>
-                      <Select value={statusFilter} onValueChange={setStatusFilter}>
-                        <SelectTrigger className="w-32">
-                          <SelectValue placeholder="Status" />
+                      <Select value={customerFilter} onValueChange={setCustomerFilter}>
+                        <SelectTrigger className="w-40">
+                          <SelectValue placeholder="Customer" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="all">All Status</SelectItem>
-                          <SelectItem value="active">Active</SelectItem>
-                          <SelectItem value="completed">Completed</SelectItem>
-                          <SelectItem value="overdue">Overdue</SelectItem>
+                          <SelectItem value="all">All Customers</SelectItem>
+                          {customers.map((customer) => (
+                            <SelectItem key={customer.id} value={customer.id}>
+                              {customer.firstName} {customer.lastName}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
@@ -317,7 +316,8 @@ export default function RemindersPage() {
                           (searchQuery === "" || 
                            r.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
                            r.customerName.toLowerCase().includes(searchQuery.toLowerCase())) &&
-                          (priorityFilter === "all" || r.priority === priorityFilter)
+                          (priorityFilter === "all" || r.priority === priorityFilter) &&
+                          (customerFilter === "all" || r.customerId === customerFilter)
                         )}
                         onComplete={handleCompleteReminder}
                         onReopen={handleReopenReminder}
@@ -332,7 +332,8 @@ export default function RemindersPage() {
                           (searchQuery === "" || 
                            r.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
                            r.customerName.toLowerCase().includes(searchQuery.toLowerCase())) &&
-                          (priorityFilter === "all" || r.priority === priorityFilter)
+                          (priorityFilter === "all" || r.priority === priorityFilter) &&
+                          (customerFilter === "all" || r.customerId === customerFilter)
                         )}
                         onComplete={handleCompleteReminder}
                         onReopen={handleReopenReminder}
@@ -347,7 +348,8 @@ export default function RemindersPage() {
                           (searchQuery === "" || 
                            r.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
                            r.customerName.toLowerCase().includes(searchQuery.toLowerCase())) &&
-                          (priorityFilter === "all" || r.priority === priorityFilter)
+                          (priorityFilter === "all" || r.priority === priorityFilter) &&
+                          (customerFilter === "all" || r.customerId === customerFilter)
                         )}
                         onComplete={handleCompleteReminder}
                         onReopen={handleReopenReminder}
