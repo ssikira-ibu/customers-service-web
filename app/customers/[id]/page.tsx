@@ -13,22 +13,19 @@ import { useReminderActions } from "@/lib/hooks/use-reminders";
 
 import { ProtectedLayout } from "@/components/layout/protected-layout";
 import { Loading } from "@/components/ui/loading";
-import { handleAPIError, handleAPISuccess, formatDate } from "@/lib/utils/api-utils";
+import { handleAPIError, handleAPISuccess } from "@/lib/utils/api-utils";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
 import { ReminderCard } from "@/components/reminder-card";
 import { ReminderForm } from "@/components/reminder-form";
+import { NoteForm } from "@/components/note-form";
 import {
   Sheet,
   SheetContent,
-  SheetHeader,
-  SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
 import {
@@ -49,19 +46,11 @@ import {
   IconEdit,
   IconPlus,
   IconTrash,
-  IconCalendar,
-  IconClock,
-  IconAlertTriangle,
-  IconCircleCheck,
   IconDotsVertical,
-  IconActivity,
   IconCopy,
-  IconCheck,
-  IconRotate,
-  IconUser,
 } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
-import { formatDistanceToNow, format } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 
 export default function CustomerDetailPage() {
   const params = useParams();
@@ -69,9 +58,12 @@ export default function CustomerDetailPage() {
   const router = useRouter();
   const [loadingActions, setLoadingActions] = useState<Set<string>>(new Set());
   const [isAddReminderSheetOpen, setIsAddReminderSheetOpen] = useState(false);
+  const [isAddNoteSheetOpen, setIsAddNoteSheetOpen] = useState(false);
+  const [isEditNoteSheetOpen, setIsEditNoteSheetOpen] = useState(false);
+  const [editingNote, setEditingNote] = useState<{id: string, note: string} | null>(null);
 
   const { customer, isLoading, error } = useCustomer(customerId);
-  const { notes } = useCustomerNotes(customerId);
+  const { notes, deleteNote } = useCustomerNotes(customerId);
   const { reminders } = useCustomerReminders(customerId);
   const { phones } = useCustomerPhones(customerId);
   const { addresses } = useCustomerAddresses(customerId);
@@ -105,7 +97,7 @@ export default function CustomerDetailPage() {
             <IconUsers className="mx-auto h-12 w-12 text-muted-foreground" />
             <h3 className="mt-4 text-lg font-medium">Customer not found</h3>
             <p className="mt-2 text-sm text-muted-foreground">
-              The customer you're looking for doesn't exist or has been removed.
+              The customer you&apos;re looking for doesn&apos;t exist or has been removed.
             </p>
             <Button className="mt-4" onClick={() => router.push("/customers")}>
               <IconArrowLeft className="mr-2 h-4 w-4" />
@@ -122,8 +114,6 @@ export default function CustomerDetailPage() {
     0
   )}`;
 
-  // Get active reminders
-  const activeReminders = reminders?.filter((r) => !r.dateCompleted) || [];
 
   // Handle reminder actions
   const handleCompleteReminder = async (customerId: string, reminderId: string) => {
@@ -204,6 +194,65 @@ export default function CustomerDetailPage() {
 
   const handleAddReminderCancel = () => {
     setIsAddReminderSheetOpen(false);
+  };
+
+  const handleAddNoteSuccess = () => {
+    setIsAddNoteSheetOpen(false);
+    // The notes will automatically refresh due to SWR
+  };
+
+  const handleAddNoteCancel = () => {
+    setIsAddNoteSheetOpen(false);
+  };
+
+  const handleEditNoteSuccess = () => {
+    setIsEditNoteSheetOpen(false);
+    setEditingNote(null);
+    // The notes will automatically refresh due to SWR
+  };
+
+  const handleEditNoteCancel = () => {
+    setIsEditNoteSheetOpen(false);
+    setEditingNote(null);
+  };
+
+  const handleEditNote = (noteId: string, noteContent: string) => {
+    setEditingNote({ id: noteId, note: noteContent });
+    setIsEditNoteSheetOpen(true);
+  };
+
+  const handleDeleteNote = async (noteId: string) => {
+    if (!confirm("Are you sure you want to delete this note?")) return;
+    
+    const actionKey = `note-${noteId}-delete`;
+    setLoadingActions(prev => new Set(prev).add(actionKey));
+    
+    try {
+      const result = await deleteNote(noteId);
+      
+      if (result.success) {
+        handleAPISuccess("Note deleted!");
+      } else {
+        handleAPIError(result.error, "Failed to delete note");
+      }
+    } catch (error) {
+      handleAPIError(error, "Failed to delete note");
+    } finally {
+      setLoadingActions(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(actionKey);
+        return newSet;
+      });
+    }
+  };
+
+  const handleCopyNote = async (noteContent: string) => {
+    try {
+      await navigator.clipboard.writeText(noteContent);
+      handleAPISuccess("Note copied to clipboard!");
+    } catch (error) {
+      handleAPIError(error, "Failed to copy note");
+    }
   };
 
   return (
@@ -429,10 +478,44 @@ export default function CustomerDetailPage() {
                       <IconNote className="h-5 w-5" />
                       Notes
                     </h2>
-                    <Button size="sm" variant="outline">
-                      <IconPlus className="mr-2 h-4 w-4" />
-                      Add Note
-                    </Button>
+                    <Sheet open={isAddNoteSheetOpen} onOpenChange={setIsAddNoteSheetOpen}>
+                      <SheetTrigger asChild>
+                        <Button size="sm" variant="outline">
+                          <IconPlus className="mr-2 h-4 w-4" />
+                          Add Note
+                        </Button>
+                      </SheetTrigger>
+                      <SheetContent side="right" className="w-[500px] sm:w-[600px] p-0">
+                        <div className="h-full flex flex-col">
+                          <div className="flex-1 overflow-y-auto p-6">
+                            <NoteForm
+                              customerId={customerId}
+                              onSuccess={handleAddNoteSuccess}
+                              onCancel={handleAddNoteCancel}
+                            />
+                          </div>
+                        </div>
+                      </SheetContent>
+                    </Sheet>
+
+                    {/* Edit Note Sheet */}
+                    <Sheet open={isEditNoteSheetOpen} onOpenChange={setIsEditNoteSheetOpen}>
+                      <SheetContent side="right" className="w-[500px] sm:w-[600px] p-0">
+                        <div className="h-full flex flex-col">
+                          <div className="flex-1 overflow-y-auto p-6">
+                            {editingNote && (
+                              <NoteForm
+                                customerId={customerId}
+                                noteId={editingNote.id}
+                                initialNote={editingNote.note}
+                                onSuccess={handleEditNoteSuccess}
+                                onCancel={handleEditNoteCancel}
+                              />
+                            )}
+                          </div>
+                        </div>
+                      </SheetContent>
+                    </Sheet>
                   </div>
                   {notes && notes.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -452,11 +535,22 @@ export default function CustomerDetailPage() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent>
-                                <DropdownMenuItem>Edit</DropdownMenuItem>
-                                <DropdownMenuItem>Copy</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleEditNote(note.id, note.note)}>
+                                  <IconEdit className="mr-2 h-4 w-4" />
+                                  Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleCopyNote(note.note)}>
+                                  <IconCopy className="mr-2 h-4 w-4" />
+                                  Copy
+                                </DropdownMenuItem>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem className="text-destructive">
-                                  Delete
+                                <DropdownMenuItem 
+                                  className="text-destructive"
+                                  onClick={() => handleDeleteNote(note.id)}
+                                  disabled={loadingActions.has(`note-${note.id}-delete`)}
+                                >
+                                  <IconTrash className="mr-2 h-4 w-4" />
+                                  {loadingActions.has(`note-${note.id}-delete`) ? "Deleting..." : "Delete"}
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
@@ -478,7 +572,7 @@ export default function CustomerDetailPage() {
                       <p className="text-xs text-muted-foreground mb-4">
                         Add your first note about this customer
                       </p>
-                      <Button size="sm" variant="outline">
+                      <Button size="sm" variant="outline" onClick={() => setIsAddNoteSheetOpen(true)}>
                         <IconPlus className="mr-2 h-4 w-4" />
                         Add Note
                       </Button>
