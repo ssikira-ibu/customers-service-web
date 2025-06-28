@@ -101,12 +101,14 @@ export function useReminderActions() {
     await Promise.all([
       globalMutate((key) => Array.isArray(key) && key[0] === 'reminders'),
       globalMutate('reminder-analytics'),
+      // Also invalidate customer-specific reminder caches
+      globalMutate((key) => typeof key === 'string' && key.includes('/reminders')),
     ]);
   };
 
   const completeReminder = async (customerId: string, reminderId: string) => {
     try {
-      // Optimistic update: immediately update the UI
+      // Optimistic update: immediately update the UI for global reminders
       await globalMutate(
         (key) => Array.isArray(key) && key[0] === 'reminders',
         (currentData: any) => {
@@ -118,6 +120,25 @@ export function useReminderActions() {
                 ...reminder,
                 dateCompleted: new Date().toISOString(),
                 completed: true,
+              };
+            }
+            return reminder;
+          });
+        },
+        false // Don't revalidate immediately
+      );
+
+      // Also update customer-specific reminder cache
+      await globalMutate(
+        `customer/${customerId}/reminders`,
+        (currentData: any) => {
+          if (!currentData) return currentData;
+          
+          return currentData.map((reminder: any) => {
+            if (reminder.id === reminderId) {
+              return {
+                ...reminder,
+                dateCompleted: new Date().toISOString(),
               };
             }
             return reminder;
@@ -144,7 +165,7 @@ export function useReminderActions() {
 
   const reopenReminder = async (customerId: string, reminderId: string) => {
     try {
-      // Optimistic update: immediately update the UI
+      // Optimistic update: immediately update the UI for global reminders
       await globalMutate(
         (key) => Array.isArray(key) && key[0] === 'reminders',
         (currentData: any) => {
@@ -156,6 +177,25 @@ export function useReminderActions() {
                 ...reminder,
                 dateCompleted: null,
                 completed: false,
+              };
+            }
+            return reminder;
+          });
+        },
+        false // Don't revalidate immediately
+      );
+
+      // Also update customer-specific reminder cache
+      await globalMutate(
+        `customer/${customerId}/reminders`,
+        (currentData: any) => {
+          if (!currentData) return currentData;
+          
+          return currentData.map((reminder: any) => {
+            if (reminder.id === reminderId) {
+              return {
+                ...reminder,
+                dateCompleted: null,
               };
             }
             return reminder;
@@ -182,9 +222,20 @@ export function useReminderActions() {
 
   const deleteReminder = async (customerId: string, reminderId: string) => {
     try {
-      // Optimistic update: immediately remove from UI
+      // Optimistic update: immediately remove from UI for global reminders
       await globalMutate(
         (key) => Array.isArray(key) && key[0] === 'reminders',
+        (currentData: any) => {
+          if (!currentData) return currentData;
+          
+          return currentData.filter((reminder: any) => reminder.id !== reminderId);
+        },
+        false // Don't revalidate immediately
+      );
+
+      // Also update customer-specific reminder cache
+      await globalMutate(
+        `customer/${customerId}/reminders`,
         (currentData: any) => {
           if (!currentData) return currentData;
           

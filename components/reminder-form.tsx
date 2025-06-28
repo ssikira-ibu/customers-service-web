@@ -26,13 +26,14 @@ import { Badge } from "@/components/ui/badge"
 interface ReminderFormProps {
   onSuccess?: () => void
   onCancel?: () => void
+  preselectedCustomerId?: string // New prop for preselecting customer
 }
 
-export function ReminderForm({ onSuccess, onCancel }: ReminderFormProps) {
+export function ReminderForm({ onSuccess, onCancel, preselectedCustomerId }: ReminderFormProps) {
   const { customers } = useCustomers()
   const [isLoading, setIsLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
-  const [selectedCustomerId, setSelectedCustomerId] = useState("")
+  const [selectedCustomerId, setSelectedCustomerId] = useState(preselectedCustomerId || "")
   const [formData, setFormData] = useState({
     description: "",
     dueDate: "",
@@ -162,10 +163,11 @@ export function ReminderForm({ onSuccess, onCancel }: ReminderFormProps) {
       // Close dialog
       onSuccess?.()
 
-      // Invalidate SWR cache for reminders and analytics
+      // Invalidate SWR cache for reminders, analytics, and customer-specific data
       await Promise.all([
         mutate((key) => Array.isArray(key) && key[0] === 'reminders'),
         mutate('reminder-analytics'),
+        mutate(`customer/${selectedCustomerId}/reminders`),
       ])
     } catch (error) {
       handleAPIError(error, "Failed to create reminder")
@@ -175,7 +177,7 @@ export function ReminderForm({ onSuccess, onCancel }: ReminderFormProps) {
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <form onSubmit={handleSubmit} className="flex flex-col h-full">
       {/* Loading overlay */}
       {isLoading && (
         <div className="absolute inset-0 bg-background/80 backdrop-blur-sm rounded-lg z-10 flex items-center justify-center">
@@ -196,57 +198,86 @@ export function ReminderForm({ onSuccess, onCancel }: ReminderFormProps) {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Customer Selection */}
-          <div className="space-y-3">
-            <Label htmlFor="customer-search" className="text-sm font-medium">Customer *</Label>
-            
-            {/* Customer search input */}
-            {!selectedCustomer && (
-              <div className="relative">
-                <IconSearch className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  id="customer-search"
-                  placeholder="Search customers..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            )}
-            
-            {/* Customer search results */}
-            {searchQuery && filteredCustomers.length > 0 && (
-              <div className="max-h-48 overflow-y-auto rounded-md border bg-popover">
-                <div className="p-2">
-                  {filteredCustomers.map((customer) => (
-                    <button
-                      key={customer.id}
-                      type="button"
-                      onClick={() => {
-                        setSelectedCustomerId(customer.id)
-                        setSearchQuery("")
-                      }}
-                      className="flex w-full items-center gap-3 rounded-sm p-2 text-left hover:bg-accent hover:text-accent-foreground"
-                    >
-                      <Avatar className="h-6 w-6">
-                        <AvatarFallback className="text-xs">
-                          {`${customer.firstName} ${customer.lastName}`.split(' ').map(n => n[0]).join('').toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{customer.firstName} {customer.lastName}</p>
-                        <p className="text-xs text-muted-foreground truncate">{customer.email}</p>
-                      </div>
-                    </button>
-                  ))}
+        <div className="space-y-6">
+          {/* Customer Selection - only show if no preselected customer */}
+          {!preselectedCustomerId && (
+            <div className="space-y-3">
+              <Label htmlFor="customer-search" className="text-sm font-medium">Customer *</Label>
+              
+              {/* Customer search input */}
+              {!selectedCustomer && (
+                <div className="relative">
+                  <IconSearch className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="customer-search"
+                    placeholder="Search customers..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
                 </div>
-              </div>
-            )}
+              )}
+              
+              {/* Customer search results */}
+              {searchQuery && filteredCustomers.length > 0 && (
+                <div className="max-h-48 overflow-y-auto rounded-md border bg-popover">
+                  <div className="p-2">
+                    {filteredCustomers.map((customer) => (
+                      <button
+                        key={customer.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedCustomerId(customer.id)
+                          setSearchQuery("")
+                        }}
+                        className="flex w-full items-center gap-3 rounded-sm p-2 text-left hover:bg-accent hover:text-accent-foreground"
+                      >
+                        <Avatar className="h-6 w-6">
+                          <AvatarFallback className="text-xs">
+                            {`${customer.firstName} ${customer.lastName}`.split(' ').map(n => n[0]).join('').toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{customer.firstName} {customer.lastName}</p>
+                          <p className="text-xs text-muted-foreground truncate">{customer.email}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-            {/* Selected customer chip */}
-            {selectedCustomer && (
-              <div className="flex items-center gap-2 p-3 rounded-lg border bg-primary/5 border-primary/20">
+              {/* Selected customer chip */}
+              {selectedCustomer && (
+                <div className="flex items-center gap-2 p-3 rounded-lg border bg-primary/5 border-primary/20">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback className="text-sm">
+                      {`${selectedCustomer.firstName} ${selectedCustomer.lastName}`.split(' ').map(n => n[0]).join('').toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{selectedCustomer.firstName} {selectedCustomer.lastName}</p>
+                    <p className="text-xs text-muted-foreground truncate">{selectedCustomer.email}</p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSelectedCustomerId("")}
+                    className="h-6 w-6 p-0 hover:bg-primary/10"
+                  >
+                    <IconX className="h-3 w-3" />
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Show selected customer info when preselected (read-only) */}
+          {preselectedCustomerId && selectedCustomer && (
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Customer</Label>
+              <div className="flex items-center gap-2 p-3 rounded-lg border bg-muted/20">
                 <Avatar className="h-8 w-8">
                   <AvatarFallback className="text-sm">
                     {`${selectedCustomer.firstName} ${selectedCustomer.lastName}`.split(' ').map(n => n[0]).join('').toUpperCase()}
@@ -256,18 +287,9 @@ export function ReminderForm({ onSuccess, onCancel }: ReminderFormProps) {
                   <p className="text-sm font-medium truncate">{selectedCustomer.firstName} {selectedCustomer.lastName}</p>
                   <p className="text-xs text-muted-foreground truncate">{selectedCustomer.email}</p>
                 </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSelectedCustomerId("")}
-                  className="h-6 w-6 p-0 hover:bg-primary/10"
-                >
-                  <IconX className="h-3 w-3" />
-                </Button>
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Description */}
           <div className="space-y-3">
@@ -352,7 +374,7 @@ export function ReminderForm({ onSuccess, onCancel }: ReminderFormProps) {
               ))}
             </div>
           </div>
-        </form>
+        </div>
       </div>
 
       {/* Fixed bottom section */}
@@ -366,7 +388,6 @@ export function ReminderForm({ onSuccess, onCancel }: ReminderFormProps) {
             disabled={isLoading || !selectedCustomerId || !formData.description.trim() || !formData.dueDate}
             className="min-w-[100px]"
             size="sm"
-            onClick={handleSubmit}
           >
             {isLoading ? (
               <>
@@ -382,6 +403,6 @@ export function ReminderForm({ onSuccess, onCancel }: ReminderFormProps) {
           </Button>
         </div>
       </div>
-    </div>
+    </form>
   )
 } 
