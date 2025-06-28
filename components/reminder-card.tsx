@@ -130,58 +130,52 @@ export function ReminderCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
-              {/* Title and badges */}
-              <div className="flex items-start gap-2 mb-1">
-                <h3
-                  className={`text-sm font-medium leading-5 flex-1 ${
-                    reminder.completed
-                      ? "line-through text-muted-foreground"
-                      : "text-foreground"
-                  }`}
-                >
-                  {reminder.description}
-                </h3>
-
-                {/* Compact badges */}
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  <Badge
-                    variant="outline"
-                    className={`text-xs px-1.5 py-0 h-5 font-medium border ${
-                      badgeStyles.priority[reminder.priority]
+              {/* Title with inline status */}
+              <div className="mb-1">
+                <div className="flex items-center gap-4 mb-1 flex-wrap">
+                  <h3
+                    className={`text-sm font-medium leading-5 ${
+                      reminder.completed
+                        ? "line-through text-muted-foreground"
+                        : "text-foreground"
                     }`}
                   >
-                    {reminder.priority}
-                  </Badge>
+                    {reminder.description}
+                  </h3>
 
-                  {reminder.completed && (
-                    <Badge
-                      variant="outline"
-                      className={`text-xs px-1.5 py-0 h-5 font-medium border ${badgeStyles.status.completed}`}
-                    >
-                      Done
-                    </Badge>
-                  )}
+                  {/* Inline status indicators */}
                   {isOverdue && !reminder.completed && (
-                    <Badge
-                      variant="outline"
-                      className={`text-xs px-1.5 py-0 h-5 font-medium border ${badgeStyles.status.overdue}`}
-                    >
+                    <span className="inline-flex items-center gap-1 text-xs text-red-600 dark:text-red-400">
+                      <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
                       Overdue
-                    </Badge>
+                    </span>
                   )}
                   {isDueToday && !reminder.completed && (
-                    <Badge
-                      variant="outline"
-                      className={`text-xs px-1.5 py-0 h-5 font-medium border ${badgeStyles.status.today}`}
-                    >
-                      Today
-                    </Badge>
+                    <span className="inline-flex items-center gap-1 text-xs text-orange-600 dark:text-orange-400">
+                      <div className="w-1.5 h-1.5 bg-orange-500 rounded-full"></div>
+                      Due today
+                    </span>
+                  )}
+                  {reminder.completed && (
+                    <span className="inline-flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                      <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                      Completed
+                    </span>
                   )}
                 </div>
               </div>
 
               {/* Meta information */}
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                <Badge
+                  variant="outline"
+                  className={`text-xs px-1.5 py-0 h-4 font-medium border ${
+                    badgeStyles.priority[reminder.priority]
+                  }`}
+                >
+                  {reminder.priority.charAt(0).toUpperCase() +
+                    reminder.priority.slice(1)}
+                </Badge>
                 <div className="flex items-center gap-1">
                   <IconCalendar className="h-3 w-3" />
                   <span>{formatDate(reminder.dueDate)}</span>
@@ -209,8 +203,8 @@ export function ReminderCard({
               </div>
             </div>
 
-            {/* Actions */}
-            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            {/* Actions - Only delete button on the right */}
+            <div className="flex items-start pt-0.5">
               <Button
                 size="sm"
                 variant="ghost"
@@ -218,7 +212,7 @@ export function ReminderCard({
                 disabled={loadingActions.has(
                   `${reminder.customerId}-${reminder.id}-delete`
                 )}
-                className="h-7 w-7 p-0 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950 disabled:opacity-50"
+                className="h-7 w-7 p-0 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950 disabled:opacity-50 opacity-0 group-hover:opacity-100 transition-opacity"
               >
                 {loadingActions.has(
                   `${reminder.customerId}-${reminder.id}-delete`
