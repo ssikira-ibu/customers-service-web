@@ -64,7 +64,7 @@ import {
 } from "@tabler/icons-react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { Customer } from "@/lib/api";
+import { Customer, customerAPI } from "@/lib/api";
 
 type SortField = "name" | "email" | "createdAt";
 type SortOrder = "asc" | "desc";
@@ -156,6 +156,23 @@ export default function CustomersPage() {
     setDeleteDialogOpen(true);
   };
 
+  const handleAddSampleCustomer = async () => {
+    try {
+      const timestamp = new Date().toISOString().slice(0, 19).replace("T", "_");
+      const sampleCustomer = {
+        firstName: "Sample",
+        lastName: `Customer_${timestamp}`,
+        email: `hereitis@debug.com`,
+      };
+
+      await customerAPI.create(sampleCustomer);
+      toast.success("Sample customer created successfully");
+      refreshCustomers();
+    } catch (error) {
+      handleAPIError(error, "Failed to create sample customer");
+    }
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -245,37 +262,50 @@ export default function CustomersPage() {
                       </p>
                     </div>
 
-                    {/* Add Customer Dialog */}
-                    <Sheet
-                      open={isAddSheetOpen}
-                      onOpenChange={setIsAddSheetOpen}
-                    >
-                      <SheetTrigger asChild>
-                        <Button size="sm" className="shadow-sm">
-                          <IconPlus className="mr-2 h-4 w-4" />
-                          Add Customer
-                        </Button>
-                      </SheetTrigger>
-                      <SheetContent
-                        side="right"
-                        className="w-[500px] sm:w-[600px] p-0"
+                    <div className="flex items-center gap-2">
+                      {/* Debug: Add Sample Customer Button */}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleAddSampleCustomer}
+                        className="shadow-sm"
                       >
-                        <SheetHeader className="sr-only">
-                          <SheetTitle>Add Customer</SheetTitle>
-                          <SheetDescription>
-                            Create a new customer profile
-                          </SheetDescription>
-                        </SheetHeader>
-                        <div className="h-full flex flex-col">
-                          <div className="flex-1 overflow-y-auto p-6">
-                            <CustomerForm
-                              onSuccess={handleAddCustomerSuccess}
-                              onCancel={handleAddCustomerCancel}
-                            />
+                        <IconPlus className="mr-2 h-4 w-4" />
+                        Add Sample
+                      </Button>
+
+                      {/* Add Customer Dialog */}
+                      <Sheet
+                        open={isAddSheetOpen}
+                        onOpenChange={setIsAddSheetOpen}
+                      >
+                        <SheetTrigger asChild>
+                          <Button size="sm" className="shadow-sm">
+                            <IconPlus className="mr-2 h-4 w-4" />
+                            Add Customer
+                          </Button>
+                        </SheetTrigger>
+                        <SheetContent
+                          side="right"
+                          className="w-[500px] sm:w-[600px] p-0"
+                        >
+                          <SheetHeader className="sr-only">
+                            <SheetTitle>Add Customer</SheetTitle>
+                            <SheetDescription>
+                              Create a new customer profile
+                            </SheetDescription>
+                          </SheetHeader>
+                          <div className="h-full flex flex-col">
+                            <div className="flex-1 overflow-y-auto p-6">
+                              <CustomerForm
+                                onSuccess={handleAddCustomerSuccess}
+                                onCancel={handleAddCustomerCancel}
+                              />
+                            </div>
                           </div>
-                        </div>
-                      </SheetContent>
-                    </Sheet>
+                        </SheetContent>
+                      </Sheet>
+                    </div>
                   </div>
                 </div>
 
