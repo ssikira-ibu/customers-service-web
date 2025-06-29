@@ -162,7 +162,27 @@ export default function CustomersPage() {
       const sampleCustomer = {
         firstName: "Sample",
         lastName: `Customer_${timestamp}`,
-        email: `hereitis@debug.com`,
+        email: `sample.customer.${timestamp}@example.com`,
+        phones: [
+          {
+            phoneNumber: "+1-555-123-4567",
+            designation: "mobile",
+          },
+          {
+            phoneNumber: "+1-555-987-6543",
+            designation: "work",
+          },
+        ],
+        addresses: [
+          {
+            addressLine1: "123 Main St",
+            city: "Some town",
+            stateProvince: "CA",
+            postalCode: "12345",
+            country: "USA",
+            addressType: "home",
+          },
+        ],
       };
 
       await customerAPI.create(sampleCustomer);
