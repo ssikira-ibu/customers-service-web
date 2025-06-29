@@ -6,15 +6,10 @@ import { formatDate } from "@/lib/utils/api-utils";
 import Link from "next/link";
 import {
   IconCalendar,
-  IconClock,
-  IconAlertTriangle,
-  IconCircleCheck,
   IconCheck,
-  IconRotate,
   IconTrash,
   IconUser,
   IconMail,
-  IconExternalLink,
 } from "@tabler/icons-react";
 
 interface ReminderCardProps {

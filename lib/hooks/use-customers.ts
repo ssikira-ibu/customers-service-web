@@ -1,9 +1,9 @@
 import useSWR, { mutate } from 'swr';
-import { customerAPI, Customer, CreateCustomerRequest, APIError } from '../api';
+import { customerAPI, Customer, CreateCustomerRequest, CreateAddressRequest, APIError } from '../api';
 import { useAuth } from '@/components/auth-provider';
 
 // SWR fetcher function
-const fetcher = async (url: string) => {
+const fetcher = async () => {
   try {
     return await customerAPI.getAll();
   } catch (error) {
@@ -376,14 +376,7 @@ export function useCustomerAddresses(customerId: string) {
     }
   );
 
-  const addAddress = async (data: {
-    street: string;
-    city: string;
-    state: string;
-    postalCode: string;
-    country: string;
-    addressType: string;
-  }) => {
+  const addAddress = async (data: CreateAddressRequest) => {
     if (!user) {
       throw new Error('User must be authenticated to add addresses');
     }
@@ -397,14 +390,7 @@ export function useCustomerAddresses(customerId: string) {
     }
   };
 
-  const updateAddress = async (addressId: string, data: {
-    street: string;
-    city: string;
-    state: string;
-    postalCode: string;
-    country: string;
-    addressType: string;
-  }) => {
+  const updateAddress = async (addressId: string, data: CreateAddressRequest) => {
     if (!user) {
       throw new Error('User must be authenticated to update addresses');
     }

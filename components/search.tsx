@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -67,6 +67,14 @@ export function Search({ className }: SearchProps) {
     };
   }, [isExpanded]);
 
+  // Define handleCustomerClick before useEffect that uses it
+  const handleCustomerClick = useCallback((customerId: string) => {
+    router.push(`/customers/${customerId}`);
+    setIsExpanded(false);
+    setQuery("");
+    setSelectedIndex(-1);
+  }, [router]);
+
   // Handle keyboard navigation
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -101,7 +109,7 @@ export function Search({ className }: SearchProps) {
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isExpanded, searchResults, selectedIndex]);
+  }, [isExpanded, searchResults, selectedIndex, handleCustomerClick]);
 
   // Reset selected index when query changes
   useEffect(() => {
@@ -127,13 +135,6 @@ export function Search({ className }: SearchProps) {
     setQuery("");
     setSelectedIndex(-1);
     inputRef.current?.focus();
-  };
-
-  const handleCustomerClick = (customerId: string) => {
-    router.push(`/customers/${customerId}`);
-    setIsExpanded(false);
-    setQuery("");
-    setSelectedIndex(-1);
   };
 
   const formatPhoneNumber = (phoneNumber: string) => {

@@ -39,7 +39,6 @@ const PhoneInput: React.ForwardRefExoticComponent<PhoneInputProps> =
         onChange,
         value,
         defaultCountry = "US",
-        showValidationState = false,
         ...props
       },
       ref

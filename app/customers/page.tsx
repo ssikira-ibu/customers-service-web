@@ -14,8 +14,6 @@ import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   Sheet,
   SheetContent,
@@ -41,13 +39,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -63,20 +54,14 @@ import {
   IconMail,
   IconPhone,
   IconEye,
-  IconEdit,
   IconTrash,
   IconDotsVertical,
-  IconFilter,
-  IconSortAscending,
-  IconSortDescending,
   IconCalendar,
   IconNotes,
   IconMapPin,
-  IconRefresh,
   IconChevronUp,
   IconChevronDown,
 } from "@tabler/icons-react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Customer } from "@/lib/api";
@@ -95,7 +80,6 @@ export default function CustomersPage() {
   const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(
     null
   );
-  const router = useRouter();
 
   // Use search hook when query is provided
   const { searchResults } = useCustomerSearch(searchQuery);

@@ -1,6 +1,15 @@
 import useSWR, { mutate as globalMutate } from 'swr';
 import { useAuth } from '@/components/auth-provider';
-import { reminderAPI } from '../api';
+import { reminderAPI, Reminder } from '../api';
+
+// Extended Reminder type with computed properties for UI
+export interface TransformedReminder extends Reminder {
+  completed: boolean;
+  customerId: string;
+  customerName: string;
+  customerEmail: string;
+  title: string; // For backward compatibility with existing UI
+}
 
 // Hook for fetching all reminders with filtering
 export function useAllReminders(params?: {
@@ -15,7 +24,7 @@ export function useAllReminders(params?: {
   );
 
   // Transform reminders to include computed properties
-  const transformedReminders = reminders?.map(reminder => ({
+  const transformedReminders: TransformedReminder[] = reminders?.map(reminder => ({
     ...reminder,
     completed: reminder.dateCompleted !== null,
     customerId: reminder.customer?.id || '',
@@ -32,7 +41,7 @@ export function useAllReminders(params?: {
     }
     
     // Then by priority (high first)
-    const priorityOrder = { high: 3, medium: 2, low: 1 };
+    const priorityOrder: Record<'high' | 'medium' | 'low', number> = { high: 3, medium: 2, low: 1 };
     const aPriority = priorityOrder[a.priority] || 2;
     const bPriority = priorityOrder[b.priority] || 2;
     
@@ -92,8 +101,10 @@ export function useReminderStats() {
 
 // Hook for reminder actions
 export function useReminderActions() {
-  const { mutate: mutateReminders } = useAllReminders();
-  const { mutate: mutateStats } = useReminderStats();
+  // These mutate functions are not directly used here but are needed for type inference
+  // and to ensure the hooks are active for cache invalidation
+  useAllReminders();
+  useReminderStats();
 
   // Helper function to invalidate all reminder-related caches
   const invalidateReminderCaches = async () => {
@@ -111,15 +122,14 @@ export function useReminderActions() {
       // Optimistic update: immediately update the UI for global reminders
       await globalMutate(
         (key) => Array.isArray(key) && key[0] === 'reminders',
-        (currentData: any) => {
+        (currentData: Reminder[] | undefined) => {
           if (!currentData) return currentData;
           
-          return currentData.map((reminder: any) => {
+          return currentData.map((reminder: Reminder) => {
             if (reminder.id === reminderId) {
               return {
                 ...reminder,
                 dateCompleted: new Date().toISOString(),
-                completed: true,
               };
             }
             return reminder;
@@ -131,10 +141,10 @@ export function useReminderActions() {
       // Also update customer-specific reminder cache
       await globalMutate(
         `customer/${customerId}/reminders`,
-        (currentData: any) => {
+        (currentData: Reminder[] | undefined) => {
           if (!currentData) return currentData;
           
-          return currentData.map((reminder: any) => {
+          return currentData.map((reminder: Reminder) => {
             if (reminder.id === reminderId) {
               return {
                 ...reminder,
@@ -168,15 +178,14 @@ export function useReminderActions() {
       // Optimistic update: immediately update the UI for global reminders
       await globalMutate(
         (key) => Array.isArray(key) && key[0] === 'reminders',
-        (currentData: any) => {
+        (currentData: Reminder[] | undefined) => {
           if (!currentData) return currentData;
           
-          return currentData.map((reminder: any) => {
+          return currentData.map((reminder: Reminder) => {
             if (reminder.id === reminderId) {
               return {
                 ...reminder,
                 dateCompleted: null,
-                completed: false,
               };
             }
             return reminder;
@@ -188,10 +197,10 @@ export function useReminderActions() {
       // Also update customer-specific reminder cache
       await globalMutate(
         `customer/${customerId}/reminders`,
-        (currentData: any) => {
+        (currentData: Reminder[] | undefined) => {
           if (!currentData) return currentData;
           
-          return currentData.map((reminder: any) => {
+          return currentData.map((reminder: Reminder) => {
             if (reminder.id === reminderId) {
               return {
                 ...reminder,
@@ -225,10 +234,10 @@ export function useReminderActions() {
       // Optimistic update: immediately remove from UI for global reminders
       await globalMutate(
         (key) => Array.isArray(key) && key[0] === 'reminders',
-        (currentData: any) => {
+        (currentData: Reminder[] | undefined) => {
           if (!currentData) return currentData;
           
-          return currentData.filter((reminder: any) => reminder.id !== reminderId);
+          return currentData.filter((reminder: Reminder) => reminder.id !== reminderId);
         },
         false // Don't revalidate immediately
       );
@@ -236,10 +245,10 @@ export function useReminderActions() {
       // Also update customer-specific reminder cache
       await globalMutate(
         `customer/${customerId}/reminders`,
-        (currentData: any) => {
+        (currentData: Reminder[] | undefined) => {
           if (!currentData) return currentData;
           
-          return currentData.filter((reminder: any) => reminder.id !== reminderId);
+          return currentData.filter((reminder: Reminder) => reminder.id !== reminderId);
         },
         false // Don't revalidate immediately
       );

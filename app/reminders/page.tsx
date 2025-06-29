@@ -1,11 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { useAllReminders, useReminderStats, useReminderActions } from "@/lib/hooks/use-reminders"
+import { useAllReminders, useReminderActions } from "@/lib/hooks/use-reminders"
 import { useCustomers } from "@/lib/hooks/use-customers"
 import { ProtectedLayout } from "@/components/layout/protected-layout"
 import { Loading } from "@/components/ui/loading"
-import { handleAPIError, handleAPISuccess, formatDate, getPriorityColor } from "@/lib/utils/api-utils"
+import { handleAPIError, handleAPISuccess } from "@/lib/utils/api-utils"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
 import {
@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 
 import {
   Select,
@@ -37,36 +37,33 @@ import { ReminderCard } from "@/components/reminder-card";
 import {
   IconCalendar,
   IconClock,
-  IconCheck,
-  IconRotate,
-  IconTrash,
   IconPlus,
   IconSearch,
   IconAlertTriangle,
   IconCircleCheck,
-  IconClockHour4,
-  IconUser,
-  IconMail,
 } from "@tabler/icons-react";
 
 export default function RemindersPage() {
   const {
     allReminders,
-    activeReminders,
-    completedReminders,
-    overdueReminders,
     isLoading,
   } = useAllReminders({ include: "customer" });
+  const { completeReminder, reopenReminder, deleteReminder } = useReminderActions();
   const { customers } = useCustomers();
-  const stats = useReminderStats();
-  const { completeReminder, reopenReminder, deleteReminder } =
-    useReminderActions();
   const [searchQuery, setSearchQuery] = useState("");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const [customerFilter, setCustomerFilter] = useState<string>("all");
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
   const [loadingActions, setLoadingActions] = useState<Set<string>>(new Set());
   const [showCompleted, setShowCompleted] = useState(false);
+
+  // Compute stats from reminders data
+  const stats = {
+    total: allReminders.length,
+    active: allReminders.filter(r => !r.completed).length,
+    overdue: allReminders.filter(r => !r.completed && new Date(r.dueDate) < new Date()).length,
+    completed: allReminders.filter(r => r.completed).length
+  };
 
   // Filter reminders based on search and filters
   const filteredReminders = allReminders.filter((reminder) => {

@@ -144,7 +144,7 @@ export class APIError extends Error {
   constructor(
     message: string,
     public status: number,
-    public errors?: any[]
+    public errors?: unknown[]
   ) {
     super(message);
     this.name = 'APIError';
@@ -155,7 +155,7 @@ export class APIError extends Error {
 async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
     let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
-    let errors: any[] = [];
+    let errors: unknown[] = [];
 
     try {
       const errorData = await response.json();

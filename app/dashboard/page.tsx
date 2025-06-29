@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/sidebar"
 import { healthAPI } from "@/lib/api"
 import { useAuth } from "@/components/auth-provider"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { 
@@ -39,19 +38,12 @@ export default function DashboardPage() {
 
   // Use existing reminder hooks
   const { 
-    allReminders, 
     activeReminders, 
-    overdueReminders, 
     isLoading: remindersLoading 
   } = useAllReminders({ include: 'customer' })
   
   const { 
-    total, 
-    active, 
-    overdue, 
-    completed, 
-    completionRate, 
-    isLoading: statsLoading 
+    completionRate 
   } = useReminderStats()
 
   // Test API connection only when authenticated
@@ -60,7 +52,7 @@ export default function DashboardPage() {
     
     const testConnection = async () => {
       try {
-        const health = await healthAPI.check()
+        await healthAPI.check()
         setHealthStatus(`Connected`)
       } catch (error) {
         setHealthStatus(`Disconnected`)
@@ -95,18 +87,7 @@ export default function DashboardPage() {
     .slice(0, 5)
 
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'bg-red-100 text-red-700 border-red-200'
-      case 'medium': return 'bg-yellow-100 text-yellow-700 border-yellow-200'
-      case 'low': return 'bg-green-100 text-green-700 border-green-200'
-      default: return 'bg-gray-100 text-gray-700 border-gray-200'
-    }
-  }
 
-  const isOverdue = (dueDate: string) => {
-    return new Date(dueDate) < new Date()
-  }
 
   // Show loading while authentication is in progress
   if (authLoading) {
@@ -144,7 +125,7 @@ export default function DashboardPage() {
                     <div className="flex flex-col gap-1">
                       <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
                       <p className="text-sm text-muted-foreground">
-                        {customers.length} customers • {active} active reminders • {overdue} overdue • {healthStatus}
+                        {customers.length} customers • {activeReminders.length} active reminders • {healthStatus}
                       </p>
                     </div>
                     
@@ -173,7 +154,7 @@ export default function DashboardPage() {
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
                       <span className="text-sm font-medium text-muted-foreground">Active</span>
-                      <span className="text-lg font-semibold">{active}</span>
+                      <span className="text-lg font-semibold">{activeReminders.length}</span>
                     </div>
                     
                     <div className="w-px h-6 bg-border"></div>
@@ -181,7 +162,7 @@ export default function DashboardPage() {
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-red-500"></div>
                       <span className="text-sm font-medium text-muted-foreground">Overdue</span>
-                      <span className="text-lg font-semibold text-red-600 dark:text-red-400">{overdue}</span>
+                      <span className="text-lg font-semibold text-red-600 dark:text-red-400">{activeReminders.filter(r => new Date(r.dueDate) < new Date()).length}</span>
                     </div>
                     
                     <div className="w-px h-6 bg-border"></div>

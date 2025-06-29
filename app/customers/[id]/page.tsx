@@ -10,6 +10,7 @@ import {
   useCustomerAddresses,
 } from "@/lib/hooks/use-customers";
 import { useReminderActions } from "@/lib/hooks/use-reminders";
+import { CreateAddressRequest } from "@/lib/api";
 
 import { ProtectedLayout } from "@/components/layout/protected-layout";
 import { Loading } from "@/components/ui/loading";
@@ -515,7 +516,7 @@ export default function CustomerDetailPage() {
   const handleAddAddress = async () => {
     setIsAddressFormLoading(true);
     try {
-      const addressData: any = {
+      const addressData: CreateAddressRequest = {
         addressLine1: addressFormData.addressLine1,
         city: addressFormData.city,
         country: addressFormData.country,
@@ -572,7 +573,7 @@ export default function CustomerDetailPage() {
 
     setIsAddressFormLoading(true);
     try {
-      const addressData: any = {
+      const addressData: CreateAddressRequest = {
         addressLine1: addressFormData.addressLine1,
         city: addressFormData.city,
         country: addressFormData.country,

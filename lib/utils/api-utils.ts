@@ -40,7 +40,12 @@ export function dismissLoadingToast(toastId: string) {
 // Format API error messages for display
 export function formatErrorMessage(error: APIError): string {
   if (error.errors && error.errors.length > 0) {
-    return error.errors.map((err: any) => err.message || err).join(", ");
+    return error.errors.map((err: unknown) => {
+      if (typeof err === 'object' && err && 'message' in err) {
+        return (err as { message: string }).message;
+      }
+      return String(err);
+    }).join(", ");
   }
   return error.message;
 }
@@ -57,6 +62,7 @@ import {
   isValidPhoneNumber as isValidLibPhoneNumber,
   formatIncompletePhoneNumber,
   AsYouType,
+  CountryCode,
 } from "libphonenumber-js";
 
 // Validate phone number format (enhanced with international support)
@@ -65,11 +71,11 @@ export function isValidPhoneNumber(phone: string, country?: string): boolean {
 
   try {
     // Try to parse the phone number
-    const phoneNumber = parsePhoneNumber(phone, country as any);
+    const phoneNumber = parsePhoneNumber(phone, country as Parameters<typeof parsePhoneNumber>[1]);
     return phoneNumber ? phoneNumber.isValid() : false;
-  } catch (error) {
+  } catch {
     // Fallback to libphonenumber-js validation
-    return isValidLibPhoneNumber(phone, country as any);
+    return isValidLibPhoneNumber(phone, country as Parameters<typeof isValidLibPhoneNumber>[1]);
   }
 }
 
@@ -142,9 +148,9 @@ export function formatPhoneNumberAsYouType(
   if (!phone) return "";
 
   try {
-    const asYouType = new AsYouType(country as any);
+    const asYouType = new AsYouType(country as CountryCode);
     return asYouType.input(phone);
-  } catch (error) {
+  } catch {
     // If formatting fails, return the cleaned input
     return phone.replace(/[^\d\s\-\(\)]/g, "");
   }
@@ -159,7 +165,7 @@ export function formatPhoneNumberNational(
 
   try {
     // If the phone already has country code, parse it fully
-    let phoneNumber = parsePhoneNumber(phone, country as any);
+    let phoneNumber = parsePhoneNumber(phone, country as Parameters<typeof parsePhoneNumber>[1]);
 
     // If parsing failed and we have a country, try with country prefix
     if (!phoneNumber && country) {
@@ -183,7 +189,7 @@ export function formatPhoneNumberNational(
       if (countryCode) {
         phoneNumber = parsePhoneNumber(
           `+${countryCode}${phone}`,
-          country as any
+          country as Parameters<typeof parsePhoneNumber>[1]
         );
       }
     }
@@ -193,7 +199,7 @@ export function formatPhoneNumberNational(
     }
 
     // Fallback to AsYouType formatting
-    const asYouType = new AsYouType(country as any);
+    const asYouType = new AsYouType(country as CountryCode);
     const formatted = asYouType.input(phone);
 
     // Remove country code if it appears in the formatted result
@@ -221,7 +227,7 @@ export function formatPhoneNumberNational(
     }
 
     return formatted;
-  } catch (error) {
+  } catch {
     return phone.replace(/[^\d\s\-\(\)]/g, "");
   }
 }
@@ -240,7 +246,7 @@ export function validatePhoneNumber(
   if (!phone) return { isValid: false, isPossible: false };
 
   try {
-    const phoneNumber = parsePhoneNumber(phone, country as any);
+    const phoneNumber = parsePhoneNumber(phone, country as Parameters<typeof parsePhoneNumber>[1]);
 
     if (phoneNumber) {
       return {
@@ -251,7 +257,7 @@ export function validatePhoneNumber(
         internationalNumber: phoneNumber.formatInternational(),
       };
     }
-  } catch (error) {
+  } catch {
     // Silent fallback
   }
 
@@ -326,7 +332,7 @@ export function getRelativeTime(date: string | Date): string {
 }
 
 // Debounce function for search inputs
-export function debounce<T extends (...args: any[]) => any>(
+export function debounce<T extends (...args: unknown[]) => unknown>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {
@@ -387,7 +393,7 @@ export function getPhoneConfidenceScore(
   let score = 100;
 
   try {
-    const phoneNumber = parsePhoneNumber(phone, country as any);
+    const phoneNumber = parsePhoneNumber(phone, country as Parameters<typeof parsePhoneNumber>[1]);
 
     if (!phoneNumber) {
       return {
@@ -436,7 +442,7 @@ export function getPhoneConfidenceScore(
     if (score < 40) level = "low";
 
     return { score: Math.max(0, score), level, issues };
-  } catch (error) {
+  } catch {
     return { score: 0, level: "low", issues: ["Unable to parse phone number"] };
   }
 }

@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Separator } from "@/components/ui/separator"
 import { 
   IconLoader, 
   IconPlus, 
@@ -21,7 +20,6 @@ import {
   IconX
 } from "@tabler/icons-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
 
 interface ReminderFormProps {
   onSuccess?: () => void
@@ -144,7 +142,7 @@ export function ReminderForm({ onSuccess, onCancel, preselectedCustomerId }: Rem
         throw new Error("Due date must be in the future")
       }
 
-      const result = await customerAPI.addReminder(selectedCustomerId, {
+      await customerAPI.addReminder(selectedCustomerId, {
         description: formData.description.trim(),
         dueDate: dueDateTime.toISOString(),
         priority: formData.priority,

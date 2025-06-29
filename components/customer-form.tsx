@@ -61,9 +61,16 @@ export function CustomerForm({ onSuccess, onCancel }: CustomerFormProps) {
         lastName: formData.lastName.trim(),
         email: formData.email.trim(),
         phones: validPhones,
-        addresses: formData.addresses.filter(addr => 
-          addr.street.trim() && addr.city.trim() && addr.state.trim() && addr.postalCode.trim()
-        )
+        addresses: formData.addresses
+          .filter(addr => addr.street.trim() && addr.city.trim() && addr.state.trim() && addr.postalCode.trim())
+          .map(addr => ({
+            addressLine1: addr.street,
+            city: addr.city,
+            stateProvince: addr.state,
+            postalCode: addr.postalCode,
+            country: addr.country,
+            addressType: addr.addressType
+          }))
       }
 
       const result = await createCustomer(customerData)
