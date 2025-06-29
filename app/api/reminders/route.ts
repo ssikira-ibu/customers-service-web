@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import {
   handleCorsOptions,
   corsResponse,
@@ -6,7 +6,7 @@ import {
 } from "@/lib/utils/cors";
 
 // Handle preflight requests
-export async function OPTIONS() {
+export async function OPTIONS(request: NextRequest) {
   return handleCorsOptions();
 }
 

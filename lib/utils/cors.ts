@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 // CORS configuration
 export function getCorsHeaders() {
@@ -24,7 +24,7 @@ export function handleCorsOptions() {
 }
 
 // Create a JSON response with CORS headers
-export function corsResponse(data: unknown, status: number = 200) {
+export function corsResponse(data: any, status: number = 200) {
   return NextResponse.json(data, {
     status,
     headers: getCorsHeaders(),

@@ -1,7 +1,6 @@
 "use client"
 
 import { useCustomers } from "@/lib/hooks"
-import { useCustomerMutations } from "@/lib/hooks/use-customers";
 import { useAllReminders, useReminderStats } from "@/lib/hooks/use-reminders";
 import { ProtectedLayout } from "@/components/layout/protected-layout";
 import { Loading } from "@/components/ui/loading";
@@ -24,18 +23,14 @@ import {
   IconCalendar,
   IconArrowRight,
   IconPlus,
-  IconUserPlus,
 } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
-import { toast } from "sonner";
 
 export default function DashboardPage() {
   const { user, loading: authLoading } = useAuth();
   const { customers, isLoading: customersLoading, error } = useCustomers();
-  const { createCustomer } = useCustomerMutations();
   const [healthStatus, setHealthStatus] = useState<string>("Checking...");
-  const [isCreatingSample, setIsCreatingSample] = useState(false);
   const router = useRouter();
 
   // Use existing reminder hooks
@@ -95,97 +90,8 @@ export default function DashboardPage() {
     )
     .slice(0, 5);
 
-  // Function to create a sample customer
-  const createSampleCustomer = async () => {
-    setIsCreatingSample(true);
 
-    try {
-      // Generate random sample data
-      const firstNames = [
-        "John",
-        "Jane",
-        "Michael",
-        "Sarah",
-        "David",
-        "Emily",
-        "Chris",
-        "Amanda",
-        "Robert",
-        "Lisa",
-      ];
-      const lastNames = [
-        "Smith",
-        "Johnson",
-        "Williams",
-        "Brown",
-        "Jones",
-        "Garcia",
-        "Miller",
-        "Davis",
-        "Rodriguez",
-        "Martinez",
-      ];
-      const domains = [
-        "gmail.com",
-        "yahoo.com",
-        "hotmail.com",
-        "outlook.com",
-        "example.com",
-      ];
 
-      const firstName =
-        firstNames[Math.floor(Math.random() * firstNames.length)];
-      const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
-      const domain = domains[Math.floor(Math.random() * domains.length)];
-      const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}@${domain}`;
-
-      // Generate random phone number
-      const phoneNumber = `(${Math.floor(Math.random() * 900) + 100}) ${
-        Math.floor(Math.random() * 900) + 100
-      }-${Math.floor(Math.random() * 9000) + 1000}`;
-
-      const sampleCustomer = {
-        firstName,
-        lastName,
-        email,
-        phones: [
-          {
-            phoneNumber,
-            designation: "mobile",
-          },
-        ],
-        addresses: [
-          {
-            addressLine1: `${Math.floor(Math.random() * 9999) + 1} Main Street`,
-            city: "Sample City",
-            stateProvince: "CA",
-            postalCode: `${Math.floor(Math.random() * 90000) + 10000}`,
-            country: "United States",
-            addressType: "home",
-          },
-        ],
-      };
-
-      const result = await createCustomer(sampleCustomer);
-
-      if (result.success) {
-        toast.success(
-          `Sample customer "${firstName} ${lastName}" created successfully!`
-        );
-      } else {
-        toast.error(
-          `Failed to create sample customer: ${
-            result.error?.message || "Unknown error"
-          }`
-        );
-      }
-    } catch (error) {
-      console.error("Error creating sample customer:", error);
-      toast.error("Failed to create sample customer");
-    } finally {
-      setIsCreatingSample(false);
-    }
-  };
 
   // Show loading while authentication is in progress
   if (authLoading) {
@@ -230,27 +136,14 @@ export default function DashboardPage() {
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="shadow-sm"
-                        onClick={createSampleCustomer}
-                        disabled={isCreatingSample}
-                      >
-                        <IconUserPlus className="mr-2 h-4 w-4" />
-                        {isCreatingSample ? "Creating..." : "Create Sample"}
-                      </Button>
-
-                      <Button
-                        size="sm"
-                        className="shadow-sm"
-                        onClick={() => router.push("/customers")}
-                      >
-                        <IconPlus className="mr-2 h-4 w-4" />
-                        Add Customer
-                      </Button>
-                    </div>
+                    <Button
+                      size="sm"
+                      className="shadow-sm"
+                      onClick={() => router.push("/customers")}
+                    >
+                      <IconPlus className="mr-2 h-4 w-4" />
+                      Add Customer
+                    </Button>
                   </div>
                 </div>
 
@@ -482,7 +375,7 @@ export default function DashboardPage() {
                     <h2 className="text-lg font-semibold tracking-tight">
                       Quick Actions
                     </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                       <Button
                         variant="outline"
                         className="h-16 flex flex-col gap-2 text-left"
@@ -526,25 +419,6 @@ export default function DashboardPage() {
                         </div>
                         <span className="text-xs text-muted-foreground">
                           Create new customer record
-                        </span>
-                      </Button>
-
-                      <Button
-                        variant="outline"
-                        className="h-16 flex flex-col gap-2 text-left"
-                        onClick={createSampleCustomer}
-                        disabled={isCreatingSample}
-                      >
-                        <div className="flex items-center gap-2">
-                          <IconUserPlus className="h-4 w-4" />
-                          <span className="text-sm font-medium">
-                            {isCreatingSample
-                              ? "Creating..."
-                              : "Sample Customer"}
-                          </span>
-                        </div>
-                        <span className="text-xs text-muted-foreground">
-                          Generate test customer data
                         </span>
                       </Button>
                     </div>

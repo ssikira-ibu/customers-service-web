@@ -419,7 +419,8 @@ export const userAPI = {
 // Health check
 export const healthAPI = {
   async check(): Promise<{ status: string; timestamp: string }> {
-    const response = await fetch(`${API_BASE_URL}/health`);
+    // Use the proxied endpoint to avoid CORS issues
+    const response = await fetch(`/api/health`);
     return handleResponse<{ status: string; timestamp: string }>(response);
   },
 };
