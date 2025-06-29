@@ -198,9 +198,10 @@ The backend uses Firebase Authentication for user management and API security:
     ],
     "addresses": [
       {
-        "street": "123 Main St",
+        "addressLine1": "123 Main St",
+        "addressLine2": "Apt 4B",
         "city": "Anytown",
-        "state": "CA",
+        "stateProvince": "CA",
         "postalCode": "12345",
         "country": "USA",
         "addressType": "home"
@@ -276,14 +277,24 @@ The backend uses Firebase Authentication for user management and API security:
 - **Request Body:**
   ```json
   {
-    "street": "123 Main St",
+    "addressLine1": "123 Main St",
+    "addressLine2": "Apt 4B",
     "city": "Anytown",
-    "state": "CA",
+    "stateProvince": "CA",
+    "region": "Northern California",
+    "district": "Bay Area",
     "postalCode": "12345",
     "country": "USA",
     "addressType": "home"
   }
   ```
+- **Notes:**
+  - Only `addressLine1`, `city`, and `country` are required
+  - `stateProvince`, `region`, `district`, and `postalCode` are optional for international flexibility
+  - Use `stateProvince` for US states, Canadian provinces, etc.
+  - Use `region` for countries that organize by regions instead of states
+  - Use `district` for additional administrative divisions
+  - `postalCode` is optional as some countries don't use postal codes
 - **Response:** Created address object
 - **Auth Required:** Yes
 - **Status Codes:** 201 (success), 400 (validation), 404 (customer not found), 500 (error)
@@ -528,8 +539,56 @@ The backend uses Firebase Authentication for user management and API security:
 
 ### Phone/Address Designations
 - **Phone:** `home`, `work`, `mobile`, etc.
-- **Address:** `home`, `work`, etc.
+- **Address:** `home`, `work`, `billing`, `shipping`, etc.
 - These are free-form strings, not enumerated values
+
+### International Address Examples
+The flexible address structure supports various international formats:
+
+**US Address:**
+```json
+{
+  "addressLine1": "123 Main Street",
+  "addressLine2": "Suite 100",
+  "city": "New York",
+  "stateProvince": "NY",
+  "postalCode": "10001",
+  "country": "United States"
+}
+```
+
+**UK Address:**
+```json
+{
+  "addressLine1": "10 Downing Street",
+  "city": "London",
+  "postalCode": "SW1A 2AA",
+  "country": "United Kingdom"
+}
+```
+
+**Japanese Address:**
+```json
+{
+  "addressLine1": "1-1-1 Chiyoda",
+  "city": "Tokyo",
+  "region": "Kanto",
+  "postalCode": "100-0001",
+  "country": "Japan"
+}
+```
+
+**Brazilian Address:**
+```json
+{
+  "addressLine1": "Rua da Praia, 123",
+  "addressLine2": "Apartamento 45",
+  "city": "Rio de Janeiro",
+  "stateProvince": "RJ",
+  "postalCode": "20000-000",
+  "country": "Brazil"
+}
+```
 
 ### CORS
 - Backend includes CORS headers for cross-origin requests

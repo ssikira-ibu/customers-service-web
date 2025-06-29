@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
@@ -275,6 +276,12 @@ export default function CustomersPage() {
                         side="right"
                         className="w-[500px] sm:w-[600px] p-0"
                       >
+                        <SheetHeader className="sr-only">
+                          <SheetTitle>Add Customer</SheetTitle>
+                          <SheetDescription>
+                            Create a new customer profile
+                          </SheetDescription>
+                        </SheetHeader>
                         <div className="h-full flex flex-col">
                           <div className="flex-1 overflow-y-auto p-6">
                             <CustomerForm

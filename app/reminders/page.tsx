@@ -27,6 +27,7 @@ import { Input } from "@/components/ui/input";
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
@@ -270,6 +271,12 @@ export default function RemindersPage() {
                         side="right"
                         className="w-[500px] sm:w-[600px] p-0"
                       >
+                        <SheetHeader className="sr-only">
+                          <SheetTitle>Add Reminder</SheetTitle>
+                          <SheetDescription>
+                            Create a new reminder
+                          </SheetDescription>
+                        </SheetHeader>
                         <div className="h-full flex flex-col">
                           <div className="flex-1 overflow-y-auto p-6">
                             <ReminderForm

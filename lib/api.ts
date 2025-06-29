@@ -33,10 +33,13 @@ export interface Phone {
 
 export interface Address {
   id: string;
-  street: string;
+  addressLine1: string;
+  addressLine2?: string;
   city: string;
-  state: string;
-  postalCode: string;
+  stateProvince?: string;
+  region?: string;
+  district?: string;
+  postalCode?: string;
   country: string;
   addressType: string;
   createdAt: string;
@@ -54,7 +57,7 @@ export interface Reminder {
   id: string;
   description: string;
   dueDate: string;
-  priority: 'low' | 'medium' | 'high';
+  priority: "low" | "medium" | "high";
   dateCompleted: string | null;
   createdAt: string;
   updatedAt: string;
@@ -75,10 +78,13 @@ export interface CreateCustomerRequest {
     designation: string;
   }[];
   addresses?: {
-    street: string;
+    addressLine1: string;
+    addressLine2?: string;
     city: string;
-    state: string;
-    postalCode: string;
+    stateProvince?: string;
+    region?: string;
+    district?: string;
+    postalCode?: string;
     country: string;
     addressType: string;
   }[];
@@ -90,10 +96,13 @@ export interface CreatePhoneRequest {
 }
 
 export interface CreateAddressRequest {
-  street: string;
+  addressLine1: string;
+  addressLine2?: string;
   city: string;
-  state: string;
-  postalCode: string;
+  stateProvince?: string;
+  region?: string;
+  district?: string;
+  postalCode?: string;
   country: string;
   addressType: string;
 }

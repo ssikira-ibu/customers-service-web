@@ -30,20 +30,58 @@ export function SignupForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError("");
+
+    // Basic validation
+    if (!email || !password || !displayName) {
+      setError("All fields are required");
+      setLoading(false);
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters long");
+      setLoading(false);
+      return;
+    }
+
+    console.log("Starting signup process...");
 
     const result = await signUp({
-      email,
+      email: email.trim(),
       password,
-      displayName,
+      displayName: displayName.trim(),
     });
-    
+
     if (result.success) {
-      router.push('/dashboard');
+      console.log("Signup successful, redirecting to dashboard...");
+      router.push("/dashboard");
     } else {
-      setError(result.error || 'Signup failed');
+      console.error("Signup failed:", result.error);
+
+      // Provide user-friendly error messages
+      let errorMessage = result.error || "Signup failed";
+
+      // Common Firebase error messages
+      if (errorMessage.includes("email-already-in-use")) {
+        errorMessage =
+          "An account with this email already exists. Please try logging in instead.";
+      } else if (errorMessage.includes("weak-password")) {
+        errorMessage =
+          "Password is too weak. Please choose a stronger password.";
+      } else if (errorMessage.includes("invalid-email")) {
+        errorMessage = "Please enter a valid email address.";
+      } else if (errorMessage.includes("network-request-failed")) {
+        errorMessage =
+          "Network error. Please check your internet connection and try again.";
+      } else if (errorMessage.includes("fetch")) {
+        errorMessage =
+          "Unable to connect to the server. Please try again later.";
+      }
+
+      setError(errorMessage);
     }
-    
+
     setLoading(false);
   };
 
@@ -85,31 +123,36 @@ export function SignupForm({
               </div>
               <div className="grid gap-3">
                 <Label htmlFor="password">Password</Label>
-                <Input 
-                  id="password" 
-                  type="password" 
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Minimum 6 characters"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   disabled={loading}
+                  minLength={6}
                 />
               </div>
-              
+
               {error && (
-                <div className="rounded-md bg-red-50 p-3">
-                  <p className="text-sm text-red-600">{error}</p>
+                <div className="rounded-md bg-red-50 border border-red-200 p-3">
+                  <p className="text-sm text-red-800">{error}</p>
                 </div>
               )}
-              
+
               <div className="flex flex-col gap-3">
                 <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? 'Creating account...' : 'Create account'}
+                  {loading ? "Creating account..." : "Create account"}
                 </Button>
               </div>
             </div>
             <div className="mt-4 text-center text-sm">
               Already have an account?{" "}
-              <Link href="/login" className="underline underline-offset-4 hover:text-blue-600">
+              <Link
+                href="/login"
+                className="underline underline-offset-4 hover:text-blue-600"
+              >
                 Sign in
               </Link>
             </div>
@@ -117,5 +160,5 @@ export function SignupForm({
         </CardContent>
       </Card>
     </div>
-  )
+  );
 } 

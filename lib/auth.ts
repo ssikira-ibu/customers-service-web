@@ -48,37 +48,64 @@ export async function signIn(email: string, password: string): Promise<AuthRespo
  */
 export async function signUp(data: SignUpData): Promise<AuthResponse> {
   try {
+    console.log("Attempting signup with data:", {
+      email: data.email,
+      displayName: data.displayName,
+    });
+    console.log("API URL:", API_BASE_URL);
+
     // Call backend signup endpoint
     const response = await fetch(`${API_BASE_URL}/auth/signup`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
+        "Content-Type": "application/json",
+        Accept: "application/json",
       },
       body: JSON.stringify(data),
     });
 
+    console.log("Signup response status:", response.status);
+    
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = await response
+        .json()
+        .catch(() => ({ message: "Signup failed" }));
+      console.error("Signup error:", errorData);
       return {
         success: false,
-        error: errorData.message || 'Signup failed'
+        error: errorData.error || errorData.message || "Signup failed",
       };
     }
 
-    const { token } = await response.json();
+    const responseData = await response.json();
+    console.log("Signup response data:", responseData);
+
+    // Backend returns 'customToken', not 'token'
+    const { customToken } = responseData;
+
+    if (!customToken) {
+      console.error("No customToken in response:", responseData);
+      return {
+        success: false,
+        error: "Invalid response from server",
+      };
+    }
 
     // Use the custom token to sign in with Firebase
     if (!auth) {
-      throw new Error('Firebase auth not initialized');
+      throw new Error("Firebase auth not initialized");
     }
-    const userCredential = await signInWithCustomToken(auth, token);
+
+    console.log("Signing in with custom token...");
+    const userCredential = await signInWithCustomToken(auth, customToken);
     
+    console.log("Signup successful!", userCredential.user);
     return {
       success: true,
       user: userCredential.user
     };
   } catch (error) {
+    console.error("Signup error:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Signup failed'
